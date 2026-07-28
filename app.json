@@ -1,33 +1,39 @@
 {
   "expo": {
     "name": "ExplainIt",
-    "slug": "ExplainIt",
+    "slug": "explainit",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
-    "userInterfaceStyle": "light",
-    "newArchEnabled": true,
+    "userInterfaceStyle": "dark",
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#0F0F1A"
     },
+    "scheme": "explainit",
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.explainit.app"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "backgroundColor": "#0F0F1A"
       },
-      "edgeToEdgeEnabled": true
+      "package": "com.explainit.app"
     },
     "web": {
+      "bundler": "metro",
+      "output": "static",
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
       "expo-router",
       "expo-font"
-    ]
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
   }
 }
