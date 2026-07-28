@@ -1,4 +1,5 @@
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { COLORS, FONTS, SPACING } from '../constants/theme';
 
 export default function ExplainCard({ topic, difficulty, preview, onPress, onDelete }) {
@@ -15,16 +16,22 @@ export default function ExplainCard({ topic, difficulty, preview, onPress, onDel
   return (
     <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.8}>
       <View style={styles.cardHeader}>
-        <Text style={styles.topic} numberOfLines={1}>📖 {topic}</Text>
+        <View style={styles.topicRow}>
+          <Ionicons name="book-outline" size={16} color={COLORS.text} />
+          <Text style={styles.topic} numberOfLines={1}> {topic}</Text>
+        </View>
         <TouchableOpacity onPress={onDelete} style={styles.deleteBtn}>
-          <Text style={styles.deleteText}>🗑️</Text>
+          <Ionicons name="trash-outline" size={16} color={COLORS.secondary} />
         </TouchableOpacity>
       </View>
       <View style={[styles.badge, { backgroundColor: color + '25' }]}>
         <Text style={[styles.badgeText, { color }]}>{difficulty?.toUpperCase()}</Text>
       </View>
       <Text style={styles.preview} numberOfLines={2}>{preview}</Text>
-      <Text style={styles.reopen}>Tap to reopen →</Text>
+      <View style={styles.reopenRow}>
+        <Text style={styles.reopen}>Tap to reopen </Text>
+        <Ionicons name="arrow-forward" size={12} color={COLORS.primary} />
+      </View>
     </TouchableOpacity>
   );
 }
@@ -51,7 +58,8 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   deleteBtn: { padding: SPACING.xs },
-  deleteText: { fontSize: 16 },
+  topicRow: { flexDirection: 'row', alignItems: 'center', flex: 1 },
+  reopenRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end' },
   badge: {
     borderRadius: 6,
     paddingHorizontal: SPACING.sm,

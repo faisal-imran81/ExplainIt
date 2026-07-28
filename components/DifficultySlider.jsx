@@ -1,12 +1,13 @@
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { COLORS, FONTS, SPACING } from '../constants/theme';
 
 const DIFFICULTIES = [
-  { key: 'eli5', label: 'ELI5', emoji: '👶', desc: 'Super Simple' },
-  { key: 'beginner', label: 'Beginner', emoji: '🌱', desc: 'Easy' },
-  { key: 'intermediate', label: 'Inter..', emoji: '📚', desc: 'Moderate' },
-  { key: 'advanced', label: 'Advanced', emoji: '🔬', desc: 'Deep' },
-  { key: 'phd', label: 'PhD', emoji: '🎓', desc: 'Expert' },
+  { key: 'eli5', label: 'ELI5', icon: 'happy-outline', desc: 'Super Simple' },
+  { key: 'beginner', label: 'Beginner', icon: 'leaf-outline', desc: 'Easy' },
+  { key: 'intermediate', label: 'Inter..', icon: 'book-outline', desc: 'Moderate' },
+  { key: 'advanced', label: 'Advanced', icon: 'flask-outline', desc: 'Deep' },
+  { key: 'phd', label: 'PhD', icon: 'school-outline', desc: 'Expert' },
 ];
 
 export default function DifficultySlider({ selected, onSelect }) {
@@ -21,7 +22,7 @@ export default function DifficultySlider({ selected, onSelect }) {
               style={[styles.btn, selected === d.key && styles.btnActive]}
               onPress={() => onSelect(d.key)}
             >
-              <Text style={styles.emoji}>{d.emoji}</Text>
+              <Ionicons name={d.icon} size={20} color={selected === d.key ? COLORS.primary : COLORS.textSecondary} />
               <Text style={[styles.btnLabel, selected === d.key && styles.btnLabelActive]}>
                 {d.label}
               </Text>
@@ -59,7 +60,6 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.primary + '25',
     borderColor: COLORS.primary,
   },
-  emoji: { fontSize: 20, marginBottom: 2 },
   btnLabel: {
     color: COLORS.textSecondary,
     fontSize: FONTS.sizes.xs,

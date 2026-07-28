@@ -65,6 +65,8 @@ export default function RootLayout() {
           name="history"
           options={{ title: 'My Learning History' }}
         />
+        <Stack.Screen name="bookmarks" options={{ title: 'My Bookmarks' }} />
+        <Stack.Screen name="profile" options={{ title: 'Profile' }} />
       </Stack>
     </>
   );

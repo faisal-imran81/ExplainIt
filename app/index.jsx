@@ -63,7 +63,12 @@ export default function HomeScreen() {
       <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
         <Text style={styles.logoutIcon}>⏻</Text>
       </TouchableOpacity>
-
+        
+      // logoutBtn ke saath profile button add karo
+      <TouchableOpacity style={styles.profileBtn} onPress={() => router.push('/profile')}>
+      <Text style={styles.profileIcon}>👤</Text>
+      </TouchableOpacity>
+      
       <ScrollView
         contentContainerStyle={styles.content}
         keyboardShouldPersistTaps="handled"
@@ -151,6 +156,20 @@ const styles = StyleSheet.create({
     paddingHorizontal: SPACING.sm,
     paddingVertical: SPACING.sm,
   },
+
+  profileBtn: {
+  position: 'absolute',
+  top: 52,
+  right: SPACING.lg + 52,
+  zIndex: 10,
+  backgroundColor: COLORS.surface,
+  borderWidth: 1,
+  borderColor: COLORS.border,
+  borderRadius: 10,
+  paddingHorizontal: SPACING.sm,
+  paddingVertical: SPACING.sm,
+  },
+  profileIcon: { fontSize: 18 },
   logoutIcon: {
     fontSize: 18,
     color: COLORS.textSecondary,

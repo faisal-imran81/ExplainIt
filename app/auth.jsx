@@ -13,6 +13,7 @@ import {
   View,
 } from 'react-native';
 import { useRouter } from 'expo-router';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { signIn, signUp, signInAnonymously } from '../lib/supabase';
 import { COLORS, FONTS, SPACING } from '../constants/theme';
 
@@ -136,9 +137,12 @@ export default function AuthScreen() {
             {loading ? (
               <ActivityIndicator color={COLORS.text} />
             ) : (
-              <Text style={styles.primaryBtnText}>
-                {mode === 'login' ? '→ Login' : '→ Create Account'}
-              </Text>
+              <View style={styles.btnIconRow}>
+                <Ionicons name="arrow-forward" size={16} color={COLORS.text} />
+                <Text style={styles.primaryBtnText}>
+                  {mode === 'login' ? ' Login' : ' Create Account'}
+                </Text>
+              </View>
             )}
           </TouchableOpacity>
 
@@ -156,7 +160,10 @@ export default function AuthScreen() {
             disabled={loading}
             activeOpacity={0.85}
           >
-            <Text style={styles.guestBtnText}>👤 Continue as Guest</Text>
+            <View style={styles.btnIconRow}>
+              <Ionicons name="person-outline" size={16} color={COLORS.text} />
+              <Text style={styles.guestBtnText}> Continue as Guest</Text>
+            </View>
           </TouchableOpacity>
         </View>
 
@@ -234,6 +241,7 @@ const styles = StyleSheet.create({
   },
   disabledBtn: { opacity: 0.6 },
   primaryBtnText: { color: COLORS.text, fontSize: FONTS.sizes.md, fontWeight: 'bold' },
+  btnIconRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center' },
   divider: {
     flexDirection: 'row',
     alignItems: 'center',

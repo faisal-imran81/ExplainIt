@@ -1,4 +1,5 @@
 import { StyleSheet, Text, View } from 'react-native';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { COLORS, FONTS, SPACING } from '../constants/theme';
 
 export default function MessageBubble({ message }) {
@@ -6,7 +7,12 @@ export default function MessageBubble({ message }) {
 
   return (
     <View style={[styles.bubble, isUser ? styles.userBubble : styles.aiBubble]}>
-      {!isUser && <Text style={styles.aiLabel}>🧠 ExplainIt</Text>}
+      {!isUser && (
+        <View style={styles.aiLabelRow}>
+          <Ionicons name="bulb-outline" size={14} color={COLORS.primary} />
+          <Text style={styles.aiLabel}> ExplainIt</Text>
+        </View>
+      )}
       <Text style={styles.messageText}>{message.content}</Text>
     </View>
   );
@@ -29,11 +35,11 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: COLORS.border,
   },
+  aiLabelRow: { flexDirection: 'row', alignItems: 'center', marginBottom: SPACING.xs },
   aiLabel: {
     color: COLORS.primary,
     fontSize: FONTS.sizes.xs,
     fontWeight: 'bold',
-    marginBottom: SPACING.xs,
   },
   messageText: {
     color: COLORS.text,
