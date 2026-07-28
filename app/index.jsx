@@ -64,9 +64,8 @@ export default function HomeScreen() {
         <Text style={styles.logoutIcon}>⏻</Text>
       </TouchableOpacity>
         
-      // logoutBtn ke saath profile button add karo
       <TouchableOpacity style={styles.profileBtn} onPress={() => router.push('/profile')}>
-      <Text style={styles.profileIcon}>👤</Text>
+        <Text style={styles.profileIcon}>👤</Text>
       </TouchableOpacity>
       
       <ScrollView

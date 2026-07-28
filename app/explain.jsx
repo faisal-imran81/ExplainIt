@@ -14,7 +14,14 @@ import {
 } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { explainConcept, generateQuiz } from '../lib/groq';
-import { saveConversation, updateConversation, getConversationById, signOut } from '../lib/supabase';
+import {
+  saveConversation,
+  updateConversation,
+  getConversationById,
+  signOut,
+  addBookmark,
+  updateStreak,
+} from '../lib/supabase';
 import { COLORS, SPACING, FONTS } from '../constants/theme';
 
 export default function ExplainScreen() {
@@ -30,6 +37,7 @@ export default function ExplainScreen() {
   const [selectedAnswers, setSelectedAnswers] = useState({});
   const [quizSubmitted, setQuizSubmitted] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [bookmarked, setBookmarked] = useState(false);
   const savedIdRef = useRef(null);
 
   useEffect(() => {
@@ -74,6 +82,7 @@ export default function ExplainScreen() {
       ];
       setMessages(updatedMessages);
 
+      // Auto-save + streak update
       try {
         if (savedIdRef.current) {
           await updateConversation(savedIdRef.current, updatedMessages);
@@ -84,6 +93,8 @@ export default function ExplainScreen() {
           }
           setSaved(true);
         }
+        // Update streak on every explanation
+        await updateStreak();
       } catch (saveErr) {
         console.log('Auto-save failed:', saveErr.message);
       }
@@ -136,6 +147,28 @@ export default function ExplainScreen() {
     }
   };
 
+  const handleBookmark = async () => {
+    if (bookmarked) {
+      Alert.alert('Already Bookmarked', 'This explanation is already in your bookmarks!');
+      return;
+    }
+
+    // Get last AI response
+    const lastAiMsg = messages.filter(m => m.role === 'assistant').pop();
+    if (!lastAiMsg) {
+      Alert.alert('Error', 'No explanation to bookmark yet!');
+      return;
+    }
+
+    try {
+      await addBookmark(topic, difficulty, lastAiMsg.content);
+      setBookmarked(true);
+      Alert.alert('Bookmarked! 🔖', 'Saved to your bookmarks!');
+    } catch (err) {
+      Alert.alert('Error', 'Could not bookmark. Try again!');
+    }
+  };
+
   const handleLogout = async () => {
     try {
       await signOut();
@@ -172,8 +205,10 @@ export default function ExplainScreen() {
           <View style={styles.badge}>
             <Text style={styles.badgeText}>{difficulty?.toUpperCase()}</Text>
           </View>
+
+          {/* Save Button */}
           <TouchableOpacity
-            style={[styles.saveBtn, saved && styles.saveBtnDone]}
+            style={[styles.actionBtn, saved && styles.actionBtnDone]}
             onPress={handleSave}
           >
             <Ionicons
@@ -181,10 +216,27 @@ export default function ExplainScreen() {
               size={14}
               color={saved ? COLORS.success : COLORS.textSecondary}
             />
-            <Text style={[styles.saveBtnText, saved && styles.saveBtnTextDone]}>
+            <Text style={[styles.actionBtnText, saved && styles.actionBtnTextDone]}>
               {saved ? 'Saved' : 'Save'}
             </Text>
           </TouchableOpacity>
+
+          {/* Bookmark Button */}
+          <TouchableOpacity
+            style={[styles.actionBtn, bookmarked && styles.bookmarkBtnDone]}
+            onPress={handleBookmark}
+          >
+            <Ionicons
+              name={bookmarked ? 'bookmark' : 'bookmark-outline'}
+              size={14}
+              color={bookmarked ? '#FF9800' : COLORS.textSecondary}
+            />
+            <Text style={[styles.actionBtnText, bookmarked && styles.bookmarkBtnText]}>
+              {bookmarked ? 'Saved' : 'Bookmark'}
+            </Text>
+          </TouchableOpacity>
+
+          {/* Logout */}
           <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
             <Ionicons name="log-out-outline" size={18} color={COLORS.secondary} />
           </TouchableOpacity>
@@ -228,9 +280,9 @@ export default function ExplainScreen() {
             {loading ? (
               <View style={styles.loadingContainer}>
                 <ActivityIndicator color={COLORS.primary} size="large" />
-              <Text style={styles.loadingText}>Generating quiz...</Text>
-            </View>
-          ) : quiz ? (
+                <Text style={styles.loadingText}>Generating quiz...</Text>
+              </View>
+            ) : quiz ? (
               <>
                 <View style={styles.quizTitleRow}>
                   <Ionicons name="help-circle-outline" size={22} color={COLORS.primary} />
@@ -281,10 +333,7 @@ export default function ExplainScreen() {
                   </View>
                 )}
                 {!quizSubmitted ? (
-                  <TouchableOpacity
-                    style={styles.submitBtn}
-                    onPress={handleSubmitQuiz}
-                  >
+                  <TouchableOpacity style={styles.submitBtn} onPress={handleSubmitQuiz}>
                     <Text style={styles.submitBtnText}>Submit Quiz</Text>
                   </TouchableOpacity>
                 ) : (
@@ -350,6 +399,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: SPACING.sm,
+    flexWrap: 'wrap',
   },
   badge: {
     backgroundColor: COLORS.primary,
@@ -358,7 +408,7 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
   },
   badgeText: { color: COLORS.text, fontSize: FONTS.sizes.xs, fontWeight: 'bold' },
-  saveBtn: {
+  actionBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: SPACING.xs,
@@ -368,13 +418,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: SPACING.sm,
     paddingVertical: 4,
   },
-  saveBtnDone: { borderColor: COLORS.success },
-  saveBtnText: { color: COLORS.textSecondary, fontSize: FONTS.sizes.xs },
-  saveBtnTextDone: { color: COLORS.success },
-  logoutBtn: {
-    marginLeft: 'auto',
-    padding: SPACING.xs,
-  },
+  actionBtnDone: { borderColor: COLORS.success },
+  actionBtnText: { color: COLORS.textSecondary, fontSize: FONTS.sizes.xs },
+  actionBtnTextDone: { color: COLORS.success },
+  bookmarkBtnDone: { borderColor: '#FF9800' },
+  bookmarkBtnText: { color: '#FF9800' },
+  logoutBtn: { marginLeft: 'auto', padding: SPACING.xs },
   scrollArea: { flex: 1 },
   scrollContent: { padding: SPACING.md, gap: SPACING.md },
   messageBubble: {
@@ -398,11 +447,7 @@ const styles = StyleSheet.create({
     gap: SPACING.xs,
     marginBottom: SPACING.xs,
   },
-  aiLabel: {
-    color: COLORS.primary,
-    fontSize: FONTS.sizes.xs,
-    fontWeight: 'bold',
-  },
+  aiLabel: { color: COLORS.primary, fontSize: FONTS.sizes.xs, fontWeight: 'bold' },
   messageText: { color: COLORS.text, fontSize: FONTS.sizes.md, lineHeight: 22 },
   loadingContainer: {
     flexDirection: 'row',
@@ -417,11 +462,7 @@ const styles = StyleSheet.create({
     gap: SPACING.sm,
     marginBottom: SPACING.md,
   },
-  quizTitle: {
-    color: COLORS.text,
-    fontSize: FONTS.sizes.xl,
-    fontWeight: 'bold',
-  },
+  quizTitle: { color: COLORS.text, fontSize: FONTS.sizes.xl, fontWeight: 'bold' },
   questionCard: {
     backgroundColor: COLORS.card,
     borderRadius: 16,
@@ -499,18 +540,18 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: SPACING.md,
     alignItems: 'center',
-    flexDirection: 'row',
-    justifyContent: 'center',
-    gap: SPACING.sm,
     marginBottom: SPACING.md,
   },
   submitBtnText: { color: COLORS.text, fontWeight: 'bold', fontSize: FONTS.sizes.md },
   backBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: SPACING.sm,
     borderWidth: 1,
     borderColor: COLORS.border,
     borderRadius: 16,
     padding: SPACING.md,
-    alignItems: 'center',
     marginBottom: SPACING.md,
   },
   backBtnText: { color: COLORS.textSecondary, fontSize: FONTS.sizes.md },
