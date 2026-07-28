@@ -14,11 +14,11 @@ import {
 } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { explainConcept, generateQuiz } from '../lib/groq';
-import { saveConversation } from '../lib/supabase';
+import { saveConversation, updateConversation, getConversationById } from '../lib/supabase';
 import { COLORS, SPACING, FONTS } from '../constants/theme';
 
 export default function ExplainScreen() {
-  const { topic, difficulty } = useLocalSearchParams();
+  const { id, topic, difficulty } = useLocalSearchParams();
   const router = useRouter();
   const scrollRef = useRef(null);
 
@@ -30,11 +30,31 @@ export default function ExplainScreen() {
   const [selectedAnswers, setSelectedAnswers] = useState({});
   const [quizSubmitted, setQuizSubmitted] = useState(false);
   const [saved, setSaved] = useState(false);
+  const savedIdRef = useRef(null);
 
-  // Auto-explain on mount
   useEffect(() => {
-    handleExplain();
+    if (id) {
+      loadExistingConversation();
+    } else {
+      handleExplain();
+    }
   }, []);
+
+  const loadExistingConversation = async () => {
+    try {
+      setLoading(true);
+      const conversation = await getConversationById(id);
+      if (conversation) {
+        setMessages(conversation.messages || []);
+        savedIdRef.current = conversation.id;
+        setSaved(true);
+      }
+    } catch (err) {
+      console.log('Failed to load conversation:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleExplain = async (customFollowUp = null) => {
     setLoading(true);
@@ -48,10 +68,25 @@ export default function ExplainScreen() {
 
       const response = await explainConcept(topic, difficulty, customFollowUp);
 
-      setMessages([
+      const updatedMessages = [
         ...newMessages,
         { role: 'assistant', content: response },
-      ]);
+      ];
+      setMessages(updatedMessages);
+
+      try {
+        if (savedIdRef.current) {
+          await updateConversation(savedIdRef.current, updatedMessages);
+        } else {
+          const data = await saveConversation(topic, difficulty, updatedMessages);
+          if (data && data.length > 0) {
+            savedIdRef.current = data[0].id;
+          }
+          setSaved(true);
+        }
+      } catch (saveErr) {
+        console.log('Auto-save failed:', saveErr);
+      }
 
       scrollRef.current?.scrollToEnd({ animated: true });
     } catch (err) {
@@ -86,8 +121,15 @@ export default function ExplainScreen() {
 
   const handleSave = async () => {
     try {
-      await saveConversation(topic, difficulty, messages);
-      setSaved(true);
+      if (savedIdRef.current) {
+        await updateConversation(savedIdRef.current, messages);
+      } else {
+        const data = await saveConversation(topic, difficulty, messages);
+        if (data && data.length > 0) {
+          savedIdRef.current = data[0].id;
+        }
+        setSaved(true);
+      }
       Alert.alert('Saved!', 'Conversation saved to your history.');
     } catch (err) {
       Alert.alert('Error', 'Could not save. Check Supabase connection.');

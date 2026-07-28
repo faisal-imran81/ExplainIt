@@ -59,7 +59,7 @@ export default function HistoryScreen() {
   const handleReopen = (item) => {
     router.push({
       pathname: '/explain',
-      params: { topic: item.topic, difficulty: item.difficulty },
+      params: { id: item.id, topic: item.topic, difficulty: item.difficulty },
     });
   };
 
