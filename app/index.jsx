@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import {
+  Alert,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -11,6 +12,7 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { COLORS, FONTS, SPACING } from '../constants/theme';
+import { signOut } from '../lib/supabase';
 
 const DIFFICULTIES = [
   { value: 'eli5', label: 'ELI5' },
@@ -28,11 +30,28 @@ export default function HomeScreen() {
   const handleExplain = () => {
     const trimmedTopic = topic.trim();
     if (!trimmedTopic) return;
-
     router.push({
       pathname: '/explain',
       params: { topic: trimmedTopic, difficulty },
     });
+  };
+
+  const handleLogout = () => {
+    Alert.alert('Logout', 'Are you sure you want to logout?', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Logout',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            await signOut();
+          } catch (err) {
+            Alert.alert('Error', 'Could not logout. Try again.');
+          }
+          router.replace('/auth');
+        },
+      },
+    ]);
   };
 
   return (
@@ -40,6 +59,11 @@ export default function HomeScreen() {
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
+      {/* Logout Button - Top Right */}
+      <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
+        <Text style={styles.logoutIcon}>⏻</Text>
+      </TouchableOpacity>
+
       <ScrollView
         contentContainerStyle={styles.content}
         keyboardShouldPersistTaps="handled"
@@ -68,7 +92,10 @@ export default function HomeScreen() {
               return (
                 <TouchableOpacity
                   key={item.value}
-                  style={[styles.difficultyButton, selected && styles.selectedDifficulty]}
+                  style={[
+                    styles.difficultyButton,
+                    selected && styles.selectedDifficulty,
+                  ]}
                   onPress={() => setDifficulty(item.value)}
                   activeOpacity={0.85}
                 >
@@ -111,6 +138,22 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: COLORS.background,
+  },
+  logoutBtn: {
+    position: 'absolute',
+    top: 52,
+    right: SPACING.lg,
+    zIndex: 10,
+    backgroundColor: COLORS.surface,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    borderRadius: 10,
+    paddingHorizontal: SPACING.sm,
+    paddingVertical: SPACING.sm,
+  },
+  logoutIcon: {
+    fontSize: 18,
+    color: COLORS.textSecondary,
   },
   content: {
     flexGrow: 1,

@@ -1,4 +1,4 @@
-import { Stack, useRouter, useSegments } from 'expo-router';
+import { Stack, useRouter, useSegments, useRootNavigationState } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, View } from 'react-native';
@@ -8,15 +8,14 @@ import { supabase, onAuthStateChange } from '../lib/supabase';
 export default function RootLayout() {
   const router = useRouter();
   const segments = useSegments();
-  const [session, setSession] = useState(undefined); // undefined = loading
+  const navigationState = useRootNavigationState();
+  const [session, setSession] = useState(undefined);
 
   useEffect(() => {
-    // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
     });
 
-    // Listen for auth changes
     const { data: { subscription } } = onAuthStateChange((_event, session) => {
       setSession(session);
     });
@@ -25,7 +24,8 @@ export default function RootLayout() {
   }, []);
 
   useEffect(() => {
-    if (session === undefined) return; // still loading
+    if (session === undefined) return;
+    if (!navigationState?.key) return;
 
     const inAuthScreen = segments[0] === 'auth';
 
@@ -34,9 +34,8 @@ export default function RootLayout() {
     } else if (session && inAuthScreen) {
       router.replace('/');
     }
-  }, [session, segments]);
+  }, [session, segments, navigationState?.key]);
 
-  // Loading state
   if (session === undefined) {
     return (
       <View style={{ flex: 1, backgroundColor: COLORS.background, alignItems: 'center', justifyContent: 'center' }}>

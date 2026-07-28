@@ -14,7 +14,7 @@ import {
 } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { explainConcept, generateQuiz } from '../lib/groq';
-import { saveConversation, updateConversation, getConversationById } from '../lib/supabase';
+import { saveConversation, updateConversation, getConversationById, signOut } from '../lib/supabase';
 import { COLORS, SPACING, FONTS } from '../constants/theme';
 
 export default function ExplainScreen() {
@@ -85,7 +85,7 @@ export default function ExplainScreen() {
           setSaved(true);
         }
       } catch (saveErr) {
-        console.log('Auto-save failed:', saveErr);
+        console.log('Auto-save failed:', saveErr.message);
       }
 
       scrollRef.current?.scrollToEnd({ animated: true });
@@ -130,10 +130,17 @@ export default function ExplainScreen() {
         }
         setSaved(true);
       }
-      Alert.alert('Saved!', 'Conversation saved to your history.');
+      Alert.alert('Saved!', 'Conversation saved! View it in History.');
     } catch (err) {
       Alert.alert('Error', 'Could not save. Check Supabase connection.');
     }
+  };
+
+  const handleLogout = async () => {
+    try {
+      await signOut();
+    } catch {}
+    router.replace('/auth');
   };
 
   const handleSubmitQuiz = () => {
@@ -177,6 +184,9 @@ export default function ExplainScreen() {
             <Text style={[styles.saveBtnText, saved && styles.saveBtnTextDone]}>
               {saved ? 'Saved' : 'Save'}
             </Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
+            <Ionicons name="log-out-outline" size={18} color={COLORS.secondary} />
           </TouchableOpacity>
         </View>
       </View>
@@ -361,6 +371,10 @@ const styles = StyleSheet.create({
   saveBtnDone: { borderColor: COLORS.success },
   saveBtnText: { color: COLORS.textSecondary, fontSize: FONTS.sizes.xs },
   saveBtnTextDone: { color: COLORS.success },
+  logoutBtn: {
+    marginLeft: 'auto',
+    padding: SPACING.xs,
+  },
   scrollArea: { flex: 1 },
   scrollContent: { padding: SPACING.md, gap: SPACING.md },
   messageBubble: {

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
+  Image,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -17,7 +18,7 @@ import { COLORS, FONTS, SPACING } from '../constants/theme';
 
 export default function AuthScreen() {
   const router = useRouter();
-  const [mode, setMode] = useState('login'); // 'login' | 'signup'
+  const [mode, setMode] = useState('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -73,7 +74,11 @@ export default function AuthScreen() {
       >
         {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.emoji}>🧠</Text>
+          <Image
+            source={require('../assets/logo.png')}
+            style={styles.logoImg}
+            resizeMode="contain"
+          />
           <Text style={styles.title}>ExplainIt</Text>
           <Text style={styles.subtitle}>Understand anything, at any level</Text>
         </View>
@@ -164,15 +169,19 @@ export default function AuthScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.background },
-  content: { flexGrow: 1, justifyContent: 'center', padding: SPACING.lg },
+  container: { flex: 2, backgroundColor: COLORS.background },
+  content: { flexGrow: 2, justifyContent: 'center', padding: SPACING.lg },
   header: { alignItems: 'center', marginBottom: SPACING.xl },
-  emoji: { fontSize: 56 },
+  logoImg: {
+    width: 200,
+    height: 100,
+    marginBottom: SPACING.md,
+  },
   title: {
     color: COLORS.text,
     fontSize: FONTS.sizes.xxl,
     fontWeight: 'bold',
-    marginTop: SPACING.sm,
+    marginTop: SPACING.xs,
   },
   subtitle: {
     color: COLORS.textSecondary,
