@@ -1,9 +1,12 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import {
   Alert,
+  Animated,
+  Dimensions,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  StatusBar,
   StyleSheet,
   Text,
   TextInput,
@@ -11,7 +14,8 @@ import {
   View,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { COLORS, FONTS, SPACING } from '../constants/theme';
+import Ionicons from '@expo/vector-icons/Ionicons';
+import { COLORS, FONTS, SPACING, RADIUS } from '../constants/theme';
 import { signOut } from '../lib/supabase';
 
 const DIFFICULTIES = [
@@ -21,6 +25,31 @@ const DIFFICULTIES = [
   { value: 'advanced', label: 'Advanced' },
   { value: 'phd', label: 'PhD' },
 ];
+
+function PressScale({ children, onPress, style, ...props }) {
+  const scale = useRef(new Animated.Value(1)).current;
+
+  const handlePressIn = () => {
+    Animated.spring(scale, { toValue: 0.97, friction: 8, tension: 150, useNativeDriver: true }).start();
+  };
+  const handlePressOut = () => {
+    Animated.spring(scale, { toValue: 1, friction: 5, tension: 100, useNativeDriver: true }).start();
+  };
+
+  return (
+    <Animated.View style={[{ transform: [{ scale }] }, style]}>
+      <TouchableOpacity
+        onPress={onPress}
+        onPressIn={handlePressIn}
+        onPressOut={handlePressOut}
+        activeOpacity={1}
+        {...props}
+      >
+        {children}
+      </TouchableOpacity>
+    </Animated.View>
+  );
+}
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -37,101 +66,111 @@ export default function HomeScreen() {
   };
 
   const handleLogout = () => {
-    Alert.alert('Logout', 'Are you sure you want to logout?', [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Logout',
-        style: 'destructive',
-        onPress: async () => {
-          try {
-            await signOut();
-          } catch (err) {
-            Alert.alert('Error', 'Could not logout. Try again.');
-          }
+  Alert.alert('Logout', 'Are you sure you want to logout?', [
+    { text: 'Cancel', style: 'cancel' },
+    {
+      text: 'Logout',
+      style: 'destructive',
+      onPress: async () => {
+        try {
+          await signOut();
           router.replace('/auth');
-        },
+        } catch (err) {
+          Alert.alert('Error', 'Could not logout. Try again.');
+        }
       },
-    ]);
-  };
+    },
+  ]);
+};
 
   return (
     <KeyboardAvoidingView
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
-      {/* Logout Button - Top Right */}
-      <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
-        <Text style={styles.logoutIcon}>⏻</Text>
-      </TouchableOpacity>
-        
-      <TouchableOpacity style={styles.profileBtn} onPress={() => router.push('/profile')}>
-        <Text style={styles.profileIcon}>👤</Text>
-      </TouchableOpacity>
-      
+      <View style={styles.headerBar}>
+        <PressScale onPress={handleLogout}>
+          <View style={styles.iconBtn}>
+            <Ionicons name="log-out-outline" size={18} color={COLORS.textSecondary} />
+          </View>
+        </PressScale>
+        <PressScale onPress={() => router.push('/profile')}>
+          <View style={styles.iconBtn}>
+            <Ionicons name="person-outline" size={18} color={COLORS.textSecondary} />
+          </View>
+        </PressScale>
+      </View>
+
       <ScrollView
         contentContainerStyle={styles.content}
         keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+        bounces={true}
       >
         <View style={styles.header}>
-          <Text style={styles.logo}>ExplainIt</Text>
-          <Text style={styles.subtitle}>Learn anything at your level.</Text>
+          <Text style={styles.greeting}>What would you like</Text>
+          <Text style={styles.greetingAccent}>to learn today?</Text>
         </View>
 
         <View style={styles.form}>
-          <Text style={styles.label}>Topic</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="What do you want explained?"
-            placeholderTextColor={COLORS.textSecondary}
-            value={topic}
-            onChangeText={setTopic}
-            returnKeyType="done"
-            onSubmitEditing={handleExplain}
-          />
-
-          <Text style={styles.label}>Difficulty</Text>
-          <View style={styles.difficultyGrid}>
-            {DIFFICULTIES.map((item) => {
-              const selected = item.value === difficulty;
-              return (
-                <TouchableOpacity
-                  key={item.value}
-                  style={[
-                    styles.difficultyButton,
-                    selected && styles.selectedDifficulty,
-                  ]}
-                  onPress={() => setDifficulty(item.value)}
-                  activeOpacity={0.85}
-                >
-                  <Text
-                    style={[
-                      styles.difficultyText,
-                      selected && styles.selectedDifficultyText,
-                    ]}
-                  >
-                    {item.label}
-                  </Text>
-                </TouchableOpacity>
-              );
-            })}
+          <View style={styles.fieldGroup}>
+            <Text style={styles.label}>Topic</Text>
+            <View style={styles.inputWrapper}>
+              <Ionicons name="search-outline" size={18} color={COLORS.textTertiary} style={styles.inputIcon} />
+              <TextInput
+                style={styles.input}
+                placeholder="e.g. Quantum Physics, Python, Mozart..."
+                placeholderTextColor={COLORS.textTertiary}
+                value={topic}
+                onChangeText={setTopic}
+                returnKeyType="done"
+                onSubmitEditing={handleExplain}
+                selectionColor={COLORS.primary}
+              />
+            </View>
           </View>
 
-          <TouchableOpacity
-            style={[styles.primaryButton, !topic.trim() && styles.disabledButton]}
-            onPress={handleExplain}
-            disabled={!topic.trim()}
-            activeOpacity={0.9}
-          >
-            <Text style={styles.primaryButtonText}>Explain</Text>
-          </TouchableOpacity>
+          <View style={styles.fieldGroup}>
+            <Text style={styles.label}>Difficulty</Text>
+            <View style={styles.difficultyGrid}>
+              {DIFFICULTIES.map((item) => {
+                const selected = item.value === difficulty;
+                return (
+                  <PressScale key={item.value} onPress={() => setDifficulty(item.value)}>
+                    <View
+                      style={[
+                        styles.difficultyButton,
+                        selected && styles.selectedDifficulty,
+                      ]}
+                    >
+                      <Text
+                        style={[
+                          styles.difficultyText,
+                          selected && styles.selectedDifficultyText,
+                        ]}
+                      >
+                        {item.label}
+                      </Text>
+                    </View>
+                  </PressScale>
+                );
+              })}
+            </View>
+          </View>
 
-          <TouchableOpacity
-            style={styles.secondaryButton}
-            onPress={() => router.push('/history')}
-            activeOpacity={0.85}
-          >
-            <Text style={styles.secondaryButtonText}>History</Text>
-          </TouchableOpacity>
+          <PressScale onPress={handleExplain} disabled={!topic.trim()}>
+            <View style={[styles.primaryButton, !topic.trim() && styles.disabledButton]}>
+              <Text style={styles.primaryButtonText}>Explain</Text>
+              <Ionicons name="arrow-forward" size={18} color={COLORS.text} />
+            </View>
+          </PressScale>
+
+          <PressScale onPress={() => router.push('/history')}>
+            <View style={styles.secondaryButton}>
+              <Ionicons name="time-outline" size={18} color={COLORS.text} />
+              <Text style={styles.secondaryButtonText}>History</Text>
+            </View>
+          </PressScale>
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -142,73 +181,81 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: COLORS.background,
+    ...Platform.select({
+      web: { maxWidth: 480, alignSelf: 'center', width: '100%' },
+    }),
   },
-  logoutBtn: {
-    position: 'absolute',
-    top: 52,
-    right: SPACING.lg,
-    zIndex: 10,
+  headerBar: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    gap: SPACING.sm,
+    paddingTop: Platform.select({
+      ios: 56,
+      android: StatusBar.currentHeight ? StatusBar.currentHeight + SPACING.sm : SPACING.xl,
+      default: SPACING.lg,
+    }),
+    paddingHorizontal: SPACING.lg,
+    paddingBottom: SPACING.sm,
+  },
+  iconBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: RADIUS.full,
     backgroundColor: COLORS.surface,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    borderRadius: 10,
-    paddingHorizontal: SPACING.sm,
-    paddingVertical: SPACING.sm,
-  },
-
-  profileBtn: {
-  position: 'absolute',
-  top: 52,
-  right: SPACING.lg + 52,
-  zIndex: 10,
-  backgroundColor: COLORS.surface,
-  borderWidth: 1,
-  borderColor: COLORS.border,
-  borderRadius: 10,
-  paddingHorizontal: SPACING.sm,
-  paddingVertical: SPACING.sm,
-  },
-  profileIcon: { fontSize: 18 },
-  logoutIcon: {
-    fontSize: 18,
-    color: COLORS.textSecondary,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   content: {
     flexGrow: 1,
-    justifyContent: 'center',
-    padding: SPACING.lg,
+    paddingHorizontal: SPACING.lg,
+    paddingBottom: SPACING.xxl,
   },
   header: {
     marginBottom: SPACING.xl,
+    marginTop: SPACING.lg,
   },
-  logo: {
-    color: COLORS.text,
-    fontSize: FONTS.sizes.xxl,
-    fontWeight: 'bold',
-    marginBottom: SPACING.sm,
-  },
-  subtitle: {
+  greeting: {
     color: COLORS.textSecondary,
-    fontSize: FONTS.sizes.md,
+    fontSize: FONTS.sizes.title3,
+    fontWeight: '400',
+  },
+  greetingAccent: {
+    color: COLORS.text,
+    fontSize: FONTS.sizes.largeTitle,
+    fontWeight: '700',
+    marginTop: SPACING.xxs,
   },
   form: {
-    gap: SPACING.md,
+    gap: SPACING.lg,
+  },
+  fieldGroup: {
+    gap: SPACING.sm,
   },
   label: {
-    color: COLORS.text,
-    fontSize: FONTS.sizes.sm,
-    fontWeight: '700',
+    color: COLORS.textSecondary,
+    fontSize: FONTS.sizes.footnote,
+    fontWeight: '600',
     textTransform: 'uppercase',
+    letterSpacing: 0.8,
+  },
+  inputWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.surface,
+    borderRadius: RADIUS.md,
+    borderWidth: 1,
+    borderColor: COLORS.borderLight,
+    paddingHorizontal: SPACING.md,
+    minHeight: 52,
+  },
+  inputIcon: {
+    marginRight: SPACING.sm,
   },
   input: {
-    minHeight: 54,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    borderRadius: 12,
-    backgroundColor: COLORS.surface,
+    flex: 1,
     color: COLORS.text,
-    fontSize: FONTS.sizes.md,
-    paddingHorizontal: SPACING.md,
+    fontSize: FONTS.sizes.body,
+    paddingVertical: SPACING.sm,
   },
   difficultyGrid: {
     flexDirection: 'row',
@@ -216,10 +263,10 @@ const styles = StyleSheet.create({
     gap: SPACING.sm,
   },
   difficultyButton: {
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    borderRadius: 10,
+    borderRadius: RADIUS.full,
     backgroundColor: COLORS.surface,
+    borderWidth: 1,
+    borderColor: COLORS.borderLight,
     paddingHorizontal: SPACING.md,
     paddingVertical: SPACING.sm,
   },
@@ -229,40 +276,44 @@ const styles = StyleSheet.create({
   },
   difficultyText: {
     color: COLORS.textSecondary,
-    fontSize: FONTS.sizes.sm,
-    fontWeight: '600',
+    fontSize: FONTS.sizes.subhead,
+    fontWeight: '500',
   },
   selectedDifficultyText: {
     color: COLORS.text,
+    fontWeight: '600',
   },
   primaryButton: {
+    flexDirection: 'row',
     minHeight: 54,
-    borderRadius: 12,
+    borderRadius: RADIUS.md,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: COLORS.primary,
-    marginTop: SPACING.sm,
+    gap: SPACING.sm,
   },
   disabledButton: {
-    opacity: 0.45,
+    opacity: 0.4,
   },
   primaryButtonText: {
     color: COLORS.text,
-    fontSize: FONTS.sizes.md,
-    fontWeight: 'bold',
+    fontSize: FONTS.sizes.headline,
+    fontWeight: '600',
   },
   secondaryButton: {
-    minHeight: 48,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    borderRadius: 12,
+    flexDirection: 'row',
+    minHeight: 50,
+    borderRadius: RADIUS.md,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: COLORS.card,
+    borderWidth: 1,
+    borderColor: COLORS.borderLight,
+    gap: SPACING.sm,
   },
   secondaryButtonText: {
     color: COLORS.text,
-    fontSize: FONTS.sizes.md,
-    fontWeight: '600',
+    fontSize: FONTS.sizes.headline,
+    fontWeight: '500',
   },
 });
