@@ -28,17 +28,16 @@ import {
   updateStreak,
 } from '../lib/supabase';
 import { COLORS, SPACING, FONTS, RADIUS } from '../constants/theme';
+import { useResponsive } from '../utils/responsive';
 
 function PressScale({ children, onPress, disabled, style, ...props }) {
   const scale = useRef(new Animated.Value(1)).current;
-
   const handlePressIn = () => {
     Animated.spring(scale, { toValue: 0.97, friction: 8, tension: 150, useNativeDriver: true }).start();
   };
   const handlePressOut = () => {
     Animated.spring(scale, { toValue: 1, friction: 5, tension: 100, useNativeDriver: true }).start();
   };
-
   return (
     <Animated.View style={[{ transform: [{ scale }] }, style]}>
       <TouchableOpacity
@@ -55,9 +54,72 @@ function PressScale({ children, onPress, disabled, style, ...props }) {
   );
 }
 
+function TypingDots() {
+  const dot1 = useRef(new Animated.Value(0)).current;
+  const dot2 = useRef(new Animated.Value(0)).current;
+  const dot3 = useRef(new Animated.Value(0)).current;
+  const sparkleRotate = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    const animDot = (dot, delay) =>
+      Animated.loop(
+        Animated.sequence([
+          Animated.delay(delay),
+          Animated.timing(dot, { toValue: 1, duration: 300, useNativeDriver: true }),
+          Animated.timing(dot, { toValue: 0, duration: 300, useNativeDriver: true }),
+          Animated.delay(600 - delay),
+        ]),
+      );
+    const l1 = animDot(dot1, 0);
+    const l2 = animDot(dot2, 160);
+    const l3 = animDot(dot3, 320);
+    l1.start();
+    l2.start();
+    l3.start();
+
+    const spin = Animated.loop(
+      Animated.timing(sparkleRotate, { toValue: 1, duration: 3000, useNativeDriver: true }),
+    );
+    spin.start();
+
+    return () => { l1.stop(); l2.stop(); l3.stop(); spin.stop(); };
+  }, []);
+
+  const rotate = sparkleRotate.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '360deg'] });
+
+  return (
+    <View style={styles.typingContainer}>
+      <View style={styles.typingBubble}>
+        <View style={styles.aiLabelRow}>
+          <Animated.View style={{ transform: [{ rotate }] }}>
+            <Ionicons name="sparkles-outline" size={12} color={COLORS.primary} />
+          </Animated.View>
+          <Text style={styles.aiLabel}>Elucid</Text>
+        </View>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5, marginTop: SPACING.xs }}>
+          {[dot1, dot2, dot3].map((d, i) => (
+            <Animated.View
+              key={i}
+              style={{
+                width: 7,
+                height: 7,
+                borderRadius: 3.5,
+                backgroundColor: COLORS.textTertiary,
+                opacity: d.interpolate({ inputRange: [0, 1], outputRange: [0.25, 0.9] }),
+                transform: [{ translateY: d.interpolate({ inputRange: [0, 1], outputRange: [0, -4] }) }],
+              }}
+            />
+          ))}
+        </View>
+      </View>
+    </View>
+  );
+}
+
 export default function ExplainScreen() {
   const { id, topic, difficulty } = useLocalSearchParams();
   const router = useRouter();
+  const { containerStyle, bubbleMaxWidth } = useResponsive();
   const scrollRef = useRef(null);
 
   const [messages, setMessages] = useState([]);
@@ -72,6 +134,173 @@ export default function ExplainScreen() {
   const [sharing, setSharing] = useState(false);
   const savedIdRef = useRef(null);
   const shareCardRef = useRef(null);
+
+  // ── Entrance animations ──
+  const headerSlide = useRef(new Animated.Value(0)).current;
+  const chatFade = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    Animated.spring(headerSlide, { toValue: 1, friction: 8, tension: 50, useNativeDriver: true }).start();
+    Animated.sequence([
+      Animated.delay(200),
+      Animated.timing(chatFade, { toValue: 1, duration: 400, useNativeDriver: true }),
+    ]).start();
+  }, []);
+
+  // ── Header elements stagger ──
+  const titleAnim = useRef(new Animated.Value(0)).current;
+  const badgeAnim = useRef(new Animated.Value(0)).current;
+  const actionAnim1 = useRef(new Animated.Value(0)).current;
+  const actionAnim2 = useRef(new Animated.Value(0)).current;
+  const actionAnim3 = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    Animated.spring(titleAnim, { toValue: 1, friction: 7, tension: 45, useNativeDriver: true }).start();
+    Animated.stagger(80, [
+      Animated.spring(badgeAnim, { toValue: 1, friction: 7, tension: 45, useNativeDriver: true }),
+      Animated.spring(actionAnim1, { toValue: 1, friction: 6, tension: 40, useNativeDriver: true }),
+      Animated.spring(actionAnim2, { toValue: 1, friction: 6, tension: 40, useNativeDriver: true }),
+      Animated.spring(actionAnim3, { toValue: 1, friction: 6, tension: 40, useNativeDriver: true }),
+    ]).start();
+  }, []);
+
+  // ── Badge glow pulse ──
+  const badgeGlow = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(badgeGlow, { toValue: 1, duration: 1800, useNativeDriver: false }),
+        Animated.timing(badgeGlow, { toValue: 0, duration: 1800, useNativeDriver: false }),
+      ]),
+    );
+    loop.start();
+    return () => loop.stop();
+  }, []);
+
+  // ── Active state spring pop ──
+  const savePop = useRef(new Animated.Value(0)).current;
+  const bookmarkPop = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    if (saved) {
+      savePop.setValue(0.8);
+      Animated.spring(savePop, { toValue: 1, friction: 4, tension: 100, useNativeDriver: true }).start();
+    }
+  }, [saved]);
+  useEffect(() => {
+    if (bookmarked) {
+      bookmarkPop.setValue(0.8);
+      Animated.spring(bookmarkPop, { toValue: 1, friction: 4, tension: 100, useNativeDriver: true }).start();
+    }
+  }, [bookmarked]);
+
+  // ── AI label rotating sparkle ──
+  const labelSparkle = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    const loop = Animated.loop(
+      Animated.timing(labelSparkle, { toValue: 1, duration: 4000, useNativeDriver: true }),
+    );
+    loop.start();
+    return () => loop.stop();
+  }, []);
+  const labelSparkleRotate = labelSparkle.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '360deg'] });
+
+  // ── Message entrance animations ──
+  const msgAnims = useRef({});
+  // Ensure all existing messages have animation values (for restored conversations)
+  useEffect(() => {
+    messages.forEach((_, idx) => {
+      if (!msgAnims.current[idx]) {
+        const opacity = new Animated.Value(0);
+        const slide = new Animated.Value(20);
+        msgAnims.current[idx] = { opacity, slide };
+        Animated.parallel([
+          Animated.timing(opacity, { toValue: 1, duration: 300, useNativeDriver: true }),
+          Animated.spring(slide, { toValue: 0, friction: 8, tension: 60, useNativeDriver: true }),
+        ]).start();
+      }
+    });
+  }, [messages.length]);
+
+  // ── Follow-up input glow ──
+  const inputFocusAnim = useRef(new Animated.Value(0)).current;
+  const [inputFocused, setInputFocused] = useState(false);
+
+  // ── Send button pulse ──
+  const sendPulse = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    if (followUp.trim().length > 0) {
+      const loop = Animated.loop(
+        Animated.sequence([
+          Animated.timing(sendPulse, { toValue: 1, duration: 800, useNativeDriver: true }),
+          Animated.timing(sendPulse, { toValue: 0, duration: 800, useNativeDriver: true }),
+        ]),
+      );
+      loop.start();
+      return () => { loop.stop(); sendPulse.setValue(0); };
+    } else {
+      sendPulse.setValue(0);
+    }
+  }, [followUp.trim().length > 0]);
+
+  // ── Quiz card staggered entrance ──
+  const quizCardAnims = useRef({});
+  useEffect(() => {
+    if (quiz && quizMode) {
+      quiz.forEach((_, qi) => {
+        if (!quizCardAnims.current[qi]) {
+          quizCardAnims.current[qi] = new Animated.Value(0);
+        }
+        Animated.spring(quizCardAnims.current[qi], {
+          toValue: 1,
+          delay: qi * 80,
+          friction: 7,
+          tension: 50,
+          useNativeDriver: true,
+        }).start();
+      });
+    }
+  }, [quiz, quizMode]);
+
+  // ── Quiz option correct/wrong animations ──
+  const quizCorrectAnims = useRef({});
+  const quizWrongAnims = useRef({});
+  useEffect(() => {
+    if (quizSubmitted && quiz) {
+      quiz.forEach((q, qi) => {
+        if (!quizCorrectAnims.current[qi]) {
+          quizCorrectAnims.current[qi] = new Animated.Value(0);
+        }
+        Animated.spring(quizCorrectAnims.current[qi], {
+          toValue: 1,
+          friction: 4,
+          tension: 100,
+          useNativeDriver: true,
+        }).start();
+
+        if (selectedAnswers[qi] !== q.correct) {
+          if (!quizWrongAnims.current[qi]) {
+            quizWrongAnims.current[qi] = new Animated.Value(0);
+          }
+          quizWrongAnims.current[qi].setValue(0);
+          Animated.sequence([
+            Animated.timing(quizWrongAnims.current[qi], { toValue: 1, duration: 50, useNativeDriver: true }),
+            Animated.timing(quizWrongAnims.current[qi], { toValue: -1, duration: 50, useNativeDriver: true }),
+            Animated.timing(quizWrongAnims.current[qi], { toValue: 0.5, duration: 50, useNativeDriver: true }),
+            Animated.timing(quizWrongAnims.current[qi], { toValue: -0.5, duration: 50, useNativeDriver: true }),
+            Animated.timing(quizWrongAnims.current[qi], { toValue: 0, duration: 50, useNativeDriver: true }),
+          ]).start();
+        }
+      });
+    }
+  }, [quizSubmitted]);
+
+  // ── Score card entrance ──
+  const scoreAnim = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    if (quizSubmitted) {
+      Animated.spring(scoreAnim, { toValue: 1, friction: 4, tension: 60, useNativeDriver: true }).start();
+    }
+  }, [quizSubmitted]);
+
+  // ── Original logic ──
 
   useEffect(() => {
     if (id) {
@@ -230,203 +459,366 @@ export default function ExplainScreen() {
     return quiz.filter((q, i) => selectedAnswers[i] === q.correct).length;
   };
 
+  const inputGlowBorder = inputFocusAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [COLORS.borderLight, COLORS.primary],
+  });
+
   return (
     <KeyboardAvoidingView
-      style={styles.container}
+      style={[styles.container, containerStyle]}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       keyboardVerticalOffset={90}
     >
       {/* Topic Header */}
-      <View style={styles.topicHeader}>
-        <View style={styles.topicTitleRow}>
-          <View style={styles.topicIconWrap}>
-            <Ionicons name="book-outline" size={18} color={COLORS.primary} />
-          </View>
-          <Text style={styles.topicTitle} numberOfLines={1}>{topic}</Text>
-        </View>
-        <View style={styles.badgeRow}>
-  <View style={styles.badge}>
-    <Text style={styles.badgeText}>{difficulty?.toUpperCase()}</Text>
-  </View>
-  <View style={styles.spacer} />
-  <PressScale onPress={handleSave}>
-    <View style={[styles.actionBtn, saved && styles.actionBtnDone]}>
-      <Ionicons
-        name={saved ? 'checkmark-circle' : 'save-outline'}
-        size={13}
-        color={saved ? COLORS.success : COLORS.textTertiary}
-      />
-      <Text style={[styles.actionBtnText, saved && styles.actionBtnTextDone]}>
-        {saved ? 'Saved' : 'Save'}
-      </Text>
-    </View>
-  </PressScale>
-  <PressScale onPress={handleBookmark}>
-    <View style={[styles.actionBtn, bookmarked && styles.bookmarkBtnDone]}>
-      <Ionicons
-        name={bookmarked ? 'bookmark' : 'bookmark-outline'}
-        size={13}
-        color={bookmarked ? COLORS.warning : COLORS.textTertiary}
-      />
-      <Text style={[styles.actionBtnText, bookmarked && styles.bookmarkBtnText]}>
-        {bookmarked ? 'Saved' : 'Bookmark'}
-      </Text>
-    </View>
-  </PressScale>
-
-  {/* Share - sirf icon */}
-  <PressScale onPress={handleShare} disabled={sharing}>
-    <View style={[styles.logoutBtn, sharing && { opacity: 0.6 }]}>
-      <Ionicons
-        name={sharing ? 'hourglass-outline' : 'share-social-outline'}
-        size={17}
-        color={COLORS.primary}
-      />
-    </View>
-  </PressScale>
-
-  {/* Logout - sirf icon */}
-  <PressScale onPress={handleLogout}>
-    <View style={styles.logoutBtn}>
-      <Ionicons name="log-out-outline" size={17} color={COLORS.textTertiary} />
-    </View>
-  </PressScale>
-</View>
-      </View>
-
-      {/* Messages / Quiz Area */}
-      <ScrollView
-        ref={scrollRef}
-        style={styles.scrollArea}
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
+      <Animated.View
+        style={[
+          styles.topicHeader,
+          {
+            transform: [{ translateY: headerSlide.interpolate({ inputRange: [0, 1], outputRange: [-30, 0] }) }],
+          },
+        ]}
       >
-        {!quizMode ? (
-          <>
-            {messages.map((msg, idx) => (
-              <View
-                key={idx}
+        <Animated.View
+          style={{
+            opacity: titleAnim,
+            transform: [{ translateY: titleAnim.interpolate({ inputRange: [0, 1], outputRange: [12, 0] }) }],
+          }}
+        >
+          <View style={styles.topicTitleRow}>
+            <View style={styles.topicIconWrap}>
+              <Ionicons name="book-outline" size={18} color={COLORS.primary} />
+            </View>
+            <Text style={styles.topicTitle} numberOfLines={1}>{topic}</Text>
+          </View>
+        </Animated.View>
+        <View style={styles.badgeRow}>
+          <Animated.View
+            style={{
+              opacity: badgeAnim,
+              transform: [{
+                translateY: badgeAnim.interpolate({ inputRange: [0, 1], outputRange: [10, 0] }),
+              }],
+            }}
+          >
+            <Animated.View
+              style={[
+                styles.badge,
+                {
+                  shadowColor: COLORS.primary,
+                  shadowOffset: { width: 0, height: 0 },
+                  shadowOpacity: badgeGlow.interpolate({ inputRange: [0, 1], outputRange: [0.1, 0.5] }),
+                  shadowRadius: badgeGlow.interpolate({ inputRange: [0, 1], outputRange: [4, 12] }),
+                },
+              ]}
+            >
+              <Text style={styles.badgeText}>{difficulty?.toUpperCase()}</Text>
+            </Animated.View>
+          </Animated.View>
+          <View style={styles.spacer} />
+          <Animated.View
+            style={{
+              opacity: actionAnim1,
+              transform: [{ translateY: actionAnim1.interpolate({ inputRange: [0, 1], outputRange: [10, 0] }) }],
+            }}
+          >
+            <PressScale onPress={handleSave}>
+              <Animated.View
                 style={[
-                  styles.messageBubble,
-                  msg.role === 'user' ? styles.userBubble : styles.aiBubble,
+                  styles.actionBtn,
+                  saved && styles.actionBtnDone,
+                  saved && { transform: [{ scale: savePop }] },
                 ]}
               >
-                {msg.role === 'assistant' && (
-                  <View style={styles.aiLabelRow}>
-                    <View style={styles.aiIconWrap}>
-                      <Ionicons name="sparkles-outline" size={12} color={COLORS.primary} />
-                    </View>
-                    <Text style={styles.aiLabel}>ExplainIt</Text>
-                  </View>
-                )}
-                <Text style={styles.messageText}>{msg.content}</Text>
+                <Ionicons
+                  name={saved ? 'checkmark-circle' : 'save-outline'}
+                  size={13}
+                  color={saved ? COLORS.success : COLORS.textTertiary}
+                />
+                <Text style={[styles.actionBtnText, saved && styles.actionBtnTextDone]}>
+                  {saved ? 'Saved' : 'Save'}
+                </Text>
+              </Animated.View>
+            </PressScale>
+          </Animated.View>
+          <Animated.View
+            style={{
+              opacity: actionAnim2,
+              transform: [{ translateY: actionAnim2.interpolate({ inputRange: [0, 1], outputRange: [10, 0] }) }],
+            }}
+          >
+            <PressScale onPress={handleBookmark}>
+              <Animated.View
+                style={[
+                  styles.actionBtn,
+                  bookmarked && styles.bookmarkBtnDone,
+                  bookmarked && { transform: [{ scale: bookmarkPop }] },
+                ]}
+              >
+                <Ionicons
+                  name={bookmarked ? 'bookmark' : 'bookmark-outline'}
+                  size={13}
+                  color={bookmarked ? COLORS.warning : COLORS.textTertiary}
+                />
+                <Text style={[styles.actionBtnText, bookmarked && styles.bookmarkBtnText]}>
+                  {bookmarked ? 'Saved' : 'Bookmark'}
+                </Text>
+              </Animated.View>
+            </PressScale>
+          </Animated.View>
+          <Animated.View
+            style={{
+              opacity: actionAnim3,
+              transform: [{ translateY: actionAnim3.interpolate({ inputRange: [0, 1], outputRange: [10, 0] }) }],
+            }}
+          >
+            <PressScale onPress={handleShare} disabled={sharing}>
+              <View style={[styles.logoutBtn, sharing && { opacity: 0.6 }]}>
+                <Ionicons
+                  name={sharing ? 'hourglass-outline' : 'share-social-outline'}
+                  size={17}
+                  color={COLORS.primary}
+                />
               </View>
-            ))}
-            {loading && (
-              <View style={styles.loadingContainer}>
-                <ActivityIndicator color={COLORS.primary} size="small" />
-                <Text style={styles.loadingText}>Thinking...</Text>
-              </View>
-            )}
-          </>
-        ) : (
-          <>
-            {loading ? (
-              <View style={styles.loadingContainer}>
-                <ActivityIndicator color={COLORS.primary} size="large" />
-                <Text style={styles.loadingText}>Generating quiz...</Text>
-              </View>
-            ) : quiz ? (
-              <>
-                <View style={styles.quizTitleRow}>
-                  <View style={styles.quizIconWrap}>
-                    <Ionicons name="help-circle-outline" size={20} color={COLORS.primary} />
-                  </View>
-                  <Text style={styles.quizTitle}>Quick Quiz</Text>
-                </View>
-                {quiz.map((q, qi) => (
-                  <View key={qi} style={styles.questionCard}>
-                    <Text style={styles.questionText}>
-                      {qi + 1}. {q.question}
-                    </Text>
-                    {q.options.map((opt, oi) => {
-                      const isSelected = selectedAnswers[qi] === oi;
-                      const isCorrect = oi === q.correct;
-                      let optStyle = styles.optionBtn;
-                      if (quizSubmitted) {
-                        if (isCorrect) optStyle = styles.optionCorrect;
-                        else if (isSelected) optStyle = styles.optionWrong;
-                      } else if (isSelected) {
-                        optStyle = styles.optionSelected;
-                      }
-                      return (
-                        <TouchableOpacity
-                          key={oi}
-                          style={optStyle}
-                          onPress={() =>
-                            !quizSubmitted &&
-                            setSelectedAnswers({ ...selectedAnswers, [qi]: oi })
-                          }
-                          activeOpacity={0.8}
+            </PressScale>
+          </Animated.View>
+        </View>
+      </Animated.View>
+
+      {/* Messages / Quiz Area */}
+      <View style={{ flex: 1, position: 'relative' }}>
+        <Animated.View style={{ flex: 1, opacity: chatFade }}>
+        <ScrollView
+          ref={scrollRef}
+          style={styles.scrollArea}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+        >
+          {!quizMode ? (
+            <>
+              {messages.map((msg, idx) => {
+                const anim = msgAnims.current[idx];
+                const bubbleAnimStyle = anim
+                  ? {
+                      opacity: anim.opacity,
+                      transform: [{ translateY: anim.slide }],
+                    }
+                  : {};
+                const isUser = msg.role === 'user';
+                return (
+                  <Animated.View
+                    key={idx}
+                    style={[
+                      styles.messageBubble,
+                      isUser ? styles.userBubble : styles.aiBubble,
+                      bubbleAnimStyle,
+                      bubbleMaxWidth ? { maxWidth: bubbleMaxWidth } : {},
+                      {
+                        alignSelf: isUser ? 'flex-end' : 'flex-start',
+                        transform: [
+                          ...(bubbleAnimStyle.transform || []),
+                          {
+                            translateX: anim
+                              ? anim.slide.interpolate({
+                                  inputRange: [0, 20],
+                                  outputRange: [0, isUser ? 15 : -15],
+                                })
+                              : 0,
+                          },
+                        ],
+                      },
+                    ]}
+                  >
+                    {msg.role === 'assistant' && (
+                      <View style={styles.aiLabelRow}>
+                        <Animated.View
+                          style={[styles.aiIconWrap, { transform: [{ rotate: labelSparkleRotate }] }]}
                         >
-                          <Text style={styles.optionText}>{opt}</Text>
-                        </TouchableOpacity>
-                      );
-                    })}
-                    {quizSubmitted && (
-                      <View style={styles.explanationRow}>
-                        <Ionicons name="bulb-outline" size={14} color={COLORS.warning} />
-                        <Text style={styles.explanationText}>{q.explanation}</Text>
+                          <Ionicons name="sparkles-outline" size={12} color={COLORS.primary} />
+                        </Animated.View>
+                        <Text style={styles.aiLabel}>Elucid</Text>
                       </View>
                     )}
-                  </View>
-                ))}
-                {quizSubmitted && (
-                  <View style={styles.scoreCard}>
-                    <Ionicons name="trophy-outline" size={22} color={COLORS.primary} />
-                    <Text style={styles.scoreText}>
-                      {getScore()}/{quiz.length}
-                    </Text>
-                  </View>
-                )}
-                {!quizSubmitted ? (
-                  <PressScale onPress={handleSubmitQuiz}>
-                    <View style={styles.submitBtn}>
-                      <Text style={styles.submitBtnText}>Submit Quiz</Text>
+                    <Text style={styles.messageText}>{msg.content}</Text>
+                  </Animated.View>
+                );
+              })}
+              {loading && <TypingDots />}
+            </>
+          ) : (
+            <>
+              {loading ? (
+                <View style={styles.loadingContainer}>
+                  <ActivityIndicator color={COLORS.primary} size="large" />
+                  <Text style={styles.loadingText}>Generating quiz...</Text>
+                </View>
+              ) : quiz ? (
+                <>
+                  <View style={styles.quizTitleRow}>
+                    <View style={styles.quizIconWrap}>
+                      <Ionicons name="help-circle-outline" size={20} color={COLORS.primary} />
                     </View>
-                  </PressScale>
-                ) : (
-                  <PressScale onPress={() => setQuizMode(false)}>
-                    <View style={styles.backBtn}>
-                      <Ionicons name="arrow-back" size={16} color={COLORS.textSecondary} />
-                      <Text style={styles.backBtnText}>Back to Explanation</Text>
-                    </View>
-                  </PressScale>
-                )}
-              </>
-            ) : null}
-          </>
-        )}
-      </ScrollView>
+                    <Text style={styles.quizTitle}>Quick Quiz</Text>
+                  </View>
+                  {quiz.map((q, qi) => {
+                    const cardAnim = quizCardAnims.current[qi];
+                    const correctAnim = quizCorrectAnims.current[qi];
+                    const wrongAnim = quizWrongAnims.current[qi];
+                    return (
+                      <Animated.View
+                        key={qi}
+                        style={[
+                          styles.questionCard,
+                          cardAnim
+                            ? {
+                                opacity: cardAnim,
+                                transform: [
+                                  { translateY: cardAnim.interpolate({ inputRange: [0, 1], outputRange: [24, 0] }) },
+                                ],
+                              }
+                            : {},
+                        ]}
+                      >
+                        <Text style={styles.questionText}>
+                          {qi + 1}. {q.question}
+                        </Text>
+                        {q.options.map((opt, oi) => {
+                          const isSelected = selectedAnswers[qi] === oi;
+                          const isCorrect = oi === q.correct;
+                          let optStyle = styles.optionBtn;
+                          let animStyle = {};
+                          if (quizSubmitted) {
+                            if (isCorrect) {
+                              optStyle = styles.optionCorrect;
+                              if (correctAnim) {
+                                animStyle = {
+                                  transform: [
+                                    { scale: correctAnim.interpolate({ inputRange: [0, 1], outputRange: [1, 1.04] }) },
+                                  ],
+                                };
+                              }
+                            } else if (isSelected) {
+                              optStyle = styles.optionWrong;
+                              if (wrongAnim) {
+                                animStyle = {
+                                  transform: [{ translateX: wrongAnim.interpolate({
+                                    inputRange: [-1, 0, 1],
+                                    outputRange: [-8, 0, 8],
+                                  }) }],
+                                };
+                              }
+                            }
+                          } else if (isSelected) {
+                            optStyle = styles.optionSelected;
+                          }
+                          return (
+                            <Animated.View key={oi} style={animStyle}>
+                              <TouchableOpacity
+                                style={optStyle}
+                                onPress={() =>
+                                  !quizSubmitted &&
+                                  setSelectedAnswers({ ...selectedAnswers, [qi]: oi })
+                                }
+                                activeOpacity={0.8}
+                              >
+                                <Text style={styles.optionText}>{opt}</Text>
+                              </TouchableOpacity>
+                            </Animated.View>
+                          );
+                        })}
+                        {quizSubmitted && (
+                          <View style={styles.explanationRow}>
+                            <Ionicons name="bulb-outline" size={14} color={COLORS.warning} />
+                            <Text style={styles.explanationText}>{q.explanation}</Text>
+                          </View>
+                        )}
+                      </Animated.View>
+                    );
+                  })}
+                  {quizSubmitted && (
+                    <Animated.View
+                      style={[
+                        styles.scoreCard,
+                        { transform: [{ scale: scoreAnim }], opacity: scoreAnim },
+                      ]}
+                    >
+                      <Ionicons name="trophy-outline" size={22} color={COLORS.primary} />
+                      <Text style={styles.scoreText}>
+                        {getScore()}/{quiz.length}
+                      </Text>
+                    </Animated.View>
+                  )}
+                  {!quizSubmitted ? (
+                    <PressScale onPress={handleSubmitQuiz}>
+                      <View style={styles.submitBtn}>
+                        <Text style={styles.submitBtnText}>Submit Quiz</Text>
+                      </View>
+                    </PressScale>
+                  ) : (
+                    <PressScale onPress={() => setQuizMode(false)}>
+                      <View style={styles.backBtn}>
+                        <Ionicons name="arrow-back" size={16} color={COLORS.textSecondary} />
+                        <Text style={styles.backBtnText}>Back to Explanation</Text>
+                      </View>
+                    </PressScale>
+                  )}
+                </>
+              ) : null}
+            </>
+          )}
+        </ScrollView>
+        </Animated.View>
+        {/* Scroll fade gradient */}
+        <View style={styles.scrollFade} pointerEvents="none" />
+      </View>
 
       {/* Bottom Action Bar */}
       {!quizMode && (
         <View style={styles.bottomBar}>
           <View style={styles.inputRow}>
-            <TextInput
-              style={styles.followUpInput}
-              placeholder="Ask a follow-up..."
-              placeholderTextColor={COLORS.textTertiary}
-              value={followUp}
-              onChangeText={setFollowUp}
-              onSubmitEditing={handleFollowUp}
-              returnKeyType="send"
-              selectionColor={COLORS.primary}
-            />
+            <Animated.View
+              style={[
+                styles.followUpInputWrap,
+                inputFocused && {
+                  borderColor: COLORS.primary,
+                  shadowColor: COLORS.primary,
+                  shadowOffset: { width: 0, height: 0 },
+                  shadowOpacity: 0.25,
+                  shadowRadius: 8,
+                  elevation: 4,
+                },
+              ]}
+            >
+              <TextInput
+                style={styles.followUpInput}
+                placeholder="Ask a follow-up..."
+                placeholderTextColor={COLORS.textTertiary}
+                value={followUp}
+                onChangeText={setFollowUp}
+                onSubmitEditing={handleFollowUp}
+                returnKeyType="send"
+                selectionColor={COLORS.primary}
+                onFocus={() => {
+                  setInputFocused(true);
+                  Animated.spring(inputFocusAnim, { toValue: 1, friction: 6, tension: 100, useNativeDriver: false }).start();
+                }}
+                onBlur={() => {
+                  setInputFocused(false);
+                  Animated.spring(inputFocusAnim, { toValue: 0, friction: 6, tension: 100, useNativeDriver: false }).start();
+                }}
+              />
+            </Animated.View>
             <PressScale onPress={handleFollowUp}>
-              <View style={styles.sendBtn}>
+              <Animated.View
+                style={[
+                  styles.sendBtn,
+                  followUp.trim().length > 0 && {
+                    transform: [{ scale: sendPulse.interpolate({ inputRange: [0, 1], outputRange: [1, 1.08] }) }],
+                  },
+                ]}
+              >
                 <Ionicons name="send" size={17} color={COLORS.text} />
-              </View>
+              </Animated.View>
             </PressScale>
             <PressScale onPress={handleQuiz}>
               <View style={styles.quizBtn}>
@@ -455,7 +847,7 @@ export default function ExplainScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.background, ...Platform.select({ web: { maxWidth: 480, alignSelf: 'center', width: '100%' } }) },
+  container: { flex: 1, backgroundColor: COLORS.background },
   topicHeader: {
     paddingHorizontal: SPACING.lg,
     paddingTop: Platform.select({
@@ -525,7 +917,17 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   scrollArea: { flex: 1 },
-  scrollContent: { padding: SPACING.lg, gap: SPACING.md, paddingBottom: SPACING.xxl },
+  scrollContent: { padding: SPACING.lg, gap: SPACING.md, paddingBottom: SPACING.xxl + SPACING.xl },
+  scrollFade: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 48,
+    backgroundColor: COLORS.background,
+    opacity: 0.55,
+    pointerEvents: 'none',
+  },
   messageBubble: {
     borderRadius: RADIUS.lg,
     padding: SPACING.md,
@@ -533,12 +935,10 @@ const styles = StyleSheet.create({
   },
   userBubble: {
     backgroundColor: COLORS.primary,
-    alignSelf: 'flex-end',
     borderBottomRightRadius: SPACING.xs,
   },
   aiBubble: {
     backgroundColor: COLORS.card,
-    alignSelf: 'flex-start',
     borderBottomLeftRadius: SPACING.xs,
     borderWidth: 1,
     borderColor: COLORS.border,
@@ -559,6 +959,16 @@ const styles = StyleSheet.create({
   },
   aiLabel: { color: COLORS.primary, fontSize: FONTS.sizes.caption1, fontWeight: '700' },
   messageText: { color: COLORS.text, fontSize: FONTS.sizes.callout, lineHeight: 24 },
+  typingContainer: { alignSelf: 'flex-start', marginBottom: SPACING.sm },
+  typingBubble: {
+    backgroundColor: COLORS.card,
+    borderRadius: RADIUS.lg,
+    borderBottomLeftRadius: SPACING.xs,
+    padding: SPACING.md,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    minWidth: 100,
+  },
   loadingContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -697,16 +1107,21 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: SPACING.sm,
   },
-  followUpInput: {
+  followUpInputWrap: {
     flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
     backgroundColor: COLORS.surface,
     borderRadius: RADIUS.full,
+    borderWidth: 1,
+    borderColor: COLORS.borderLight,
+  },
+  followUpInput: {
+    flex: 1,
     paddingHorizontal: SPACING.md + 4,
     paddingVertical: SPACING.sm + 2,
     color: COLORS.text,
     fontSize: FONTS.sizes.callout,
-    borderWidth: 1,
-    borderColor: COLORS.borderLight,
   },
   sendBtn: {
     width: 42,
