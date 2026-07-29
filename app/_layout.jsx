@@ -101,7 +101,7 @@ export default function RootLayout() {
         <Stack.Screen name="onboarding" options={{ headerShown: false }} />
         <Stack.Screen
           name="explain"
-          options={{ title: 'ExplainIt', headerBackTitle: 'Home', animation: 'slide_from_right' }}
+          options={{ title: 'Elucid', headerBackTitle: 'Home', animation: 'slide_from_right' }}
         />
         <Stack.Screen
           name="history"
