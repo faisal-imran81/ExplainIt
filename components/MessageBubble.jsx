@@ -1,6 +1,6 @@
 import { StyleSheet, Text, View } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { COLORS, FONTS, SPACING } from '../constants/theme';
+import { COLORS, FONTS, SPACING, RADIUS } from '../constants/theme';
 
 export default function MessageBubble({ message }) {
   const isUser = message.role === 'user';
@@ -10,7 +10,7 @@ export default function MessageBubble({ message }) {
       {!isUser && (
         <View style={styles.aiLabelRow}>
           <Ionicons name="bulb-outline" size={14} color={COLORS.primary} />
-          <Text style={styles.aiLabel}> ExplainIt</Text>
+          <Text style={styles.aiLabel}> Elucid </Text>
         </View>
       )}
       <Text style={styles.messageText}>{message.content}</Text>
@@ -20,30 +20,32 @@ export default function MessageBubble({ message }) {
 
 const styles = StyleSheet.create({
   bubble: {
-    borderRadius: 16,
+    borderRadius: RADIUS.lg,
     padding: SPACING.md,
-    maxWidth: '95%',
+    maxWidth: '92%',
     marginBottom: SPACING.sm,
   },
   userBubble: {
     backgroundColor: COLORS.primary,
     alignSelf: 'flex-end',
+    borderBottomRightRadius: SPACING.xs,
   },
   aiBubble: {
     backgroundColor: COLORS.card,
     alignSelf: 'flex-start',
+    borderBottomLeftRadius: SPACING.xs,
     borderWidth: 1,
     borderColor: COLORS.border,
   },
-  aiLabelRow: { flexDirection: 'row', alignItems: 'center', marginBottom: SPACING.xs },
+  aiLabelRow: { flexDirection: 'row', alignItems: 'center', marginBottom: SPACING.sm },
   aiLabel: {
     color: COLORS.primary,
-    fontSize: FONTS.sizes.xs,
-    fontWeight: 'bold',
+    fontSize: FONTS.sizes.caption1,
+    fontWeight: '700',
   },
   messageText: {
     color: COLORS.text,
-    fontSize: FONTS.sizes.md,
-    lineHeight: 22,
+    fontSize: FONTS.sizes.callout,
+    lineHeight: 24,
   },
 });

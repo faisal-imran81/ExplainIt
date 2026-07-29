@@ -1,6 +1,6 @@
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { COLORS, FONTS, SPACING } from '../constants/theme';
+import { COLORS, FONTS, SPACING, RADIUS } from '../constants/theme';
 
 export default function ExplainCard({ topic, difficulty, preview, onPress, onDelete }) {
   const difficultyColors = {
@@ -14,17 +14,17 @@ export default function ExplainCard({ topic, difficulty, preview, onPress, onDel
   const color = difficultyColors[difficulty] || COLORS.primary;
 
   return (
-    <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.8}>
+    <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={1}>
       <View style={styles.cardHeader}>
         <View style={styles.topicRow}>
-          <Ionicons name="book-outline" size={16} color={COLORS.text} />
+          <Ionicons name="book-outline" size={15} color={COLORS.text} />
           <Text style={styles.topic} numberOfLines={1}> {topic}</Text>
         </View>
         <TouchableOpacity onPress={onDelete} style={styles.deleteBtn}>
-          <Ionicons name="trash-outline" size={16} color={COLORS.secondary} />
+          <Ionicons name="trash-outline" size={15} color={COLORS.error} />
         </TouchableOpacity>
       </View>
-      <View style={[styles.badge, { backgroundColor: color + '25' }]}>
+      <View style={[styles.badge, { backgroundColor: color + '20' }]}>
         <Text style={[styles.badgeText, { color }]}>{difficulty?.toUpperCase()}</Text>
       </View>
       <Text style={styles.preview} numberOfLines={2}>{preview}</Text>
@@ -39,8 +39,8 @@ export default function ExplainCard({ topic, difficulty, preview, onPress, onDel
 const styles = StyleSheet.create({
   card: {
     backgroundColor: COLORS.card,
-    borderRadius: 16,
-    padding: SPACING.md,
+    borderRadius: RADIUS.lg,
+    padding: SPACING.lg,
     borderWidth: 1,
     borderColor: COLORS.border,
     marginBottom: SPACING.md,
@@ -53,30 +53,30 @@ const styles = StyleSheet.create({
   },
   topic: {
     color: COLORS.text,
-    fontSize: FONTS.sizes.md,
-    fontWeight: 'bold',
+    fontSize: FONTS.sizes.callout,
+    fontWeight: '700',
     flex: 1,
   },
   deleteBtn: { padding: SPACING.xs },
   topicRow: { flexDirection: 'row', alignItems: 'center', flex: 1 },
   reopenRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end' },
   badge: {
-    borderRadius: 6,
+    borderRadius: RADIUS.full,
     paddingHorizontal: SPACING.sm,
-    paddingVertical: 2,
+    paddingVertical: SPACING.xxs,
     alignSelf: 'flex-start',
     marginBottom: SPACING.sm,
   },
-  badgeText: { fontSize: FONTS.sizes.xs, fontWeight: 'bold' },
+  badgeText: { fontSize: FONTS.sizes.caption1, fontWeight: '700' },
   preview: {
     color: COLORS.textSecondary,
-    fontSize: FONTS.sizes.sm,
-    lineHeight: 20,
+    fontSize: FONTS.sizes.subhead,
+    lineHeight: 22,
     marginBottom: SPACING.sm,
   },
   reopen: {
     color: COLORS.primary,
-    fontSize: FONTS.sizes.xs,
+    fontSize: FONTS.sizes.footnote,
     fontWeight: '600',
     textAlign: 'right',
   },

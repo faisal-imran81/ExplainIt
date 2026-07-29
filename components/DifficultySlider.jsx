@@ -1,6 +1,6 @@
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { COLORS, FONTS, SPACING } from '../constants/theme';
+import { COLORS, FONTS, SPACING, RADIUS } from '../constants/theme';
 
 const DIFFICULTIES = [
   { key: 'eli5', label: 'ELI5', icon: 'happy-outline', desc: 'Super Simple' },
@@ -36,39 +36,40 @@ export default function DifficultySlider({ selected, onSelect }) {
 }
 
 const styles = StyleSheet.create({
-  container: { marginBottom: SPACING.md },
+  container: { marginBottom: SPACING.lg },
   label: {
     color: COLORS.textSecondary,
-    fontSize: FONTS.sizes.sm,
+    fontSize: FONTS.sizes.footnote,
     fontWeight: '600',
     textTransform: 'uppercase',
-    letterSpacing: 1,
+    letterSpacing: 0.8,
     marginBottom: SPACING.sm,
   },
   row: { flexDirection: 'row', gap: SPACING.sm },
   btn: {
     alignItems: 'center',
     backgroundColor: COLORS.surface,
-    borderRadius: 12,
+    borderRadius: RADIUS.md,
     borderWidth: 1,
-    borderColor: COLORS.border,
+    borderColor: COLORS.borderLight,
     paddingHorizontal: SPACING.md,
-    paddingVertical: SPACING.sm,
-    minWidth: 75,
+    paddingVertical: SPACING.sm + 2,
+    minWidth: 76,
   },
   btnActive: {
-    backgroundColor: COLORS.primary + '25',
+    backgroundColor: COLORS.primary + '20',
     borderColor: COLORS.primary,
   },
   btnLabel: {
-    color: COLORS.textSecondary,
-    fontSize: FONTS.sizes.xs,
+    color: COLORS.textTertiary,
+    fontSize: FONTS.sizes.footnote,
     fontWeight: '600',
+    marginTop: SPACING.xs,
   },
   btnLabelActive: { color: COLORS.primary },
   desc: {
-    color: COLORS.textSecondary,
-    fontSize: 9,
-    marginTop: 2,
+    color: COLORS.textTertiary,
+    fontSize: FONTS.sizes.caption2,
+    marginTop: SPACING.xxs,
   },
 });
