@@ -2,7 +2,6 @@ import { useState, useRef } from 'react';
 import {
   Alert,
   Animated,
-  Dimensions,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -13,6 +12,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { useResponsive } from '../utils/responsive';
 import { useRouter } from 'expo-router';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { COLORS, FONTS, SPACING, RADIUS } from '../constants/theme';
@@ -53,6 +53,7 @@ function PressScale({ children, onPress, style, ...props }) {
 
 export default function HomeScreen() {
   const router = useRouter();
+  const { containerStyle } = useResponsive();
   const [topic, setTopic] = useState('');
   const [difficulty, setDifficulty] = useState('beginner');
 
@@ -66,26 +67,28 @@ export default function HomeScreen() {
   };
 
   const handleLogout = () => {
-  Alert.alert('Logout', 'Are you sure you want to logout?', [
-    { text: 'Cancel', style: 'cancel' },
-    {
-      text: 'Logout',
-      style: 'destructive',
-      onPress: async () => {
-        try {
-          await signOut();
-          router.replace('/auth');
-        } catch (err) {
-          Alert.alert('Error', 'Could not logout. Try again.');
-        }
-      },
-    },
-  ]);
-};
+    const doLogout = async () => {
+      try {
+        await signOut();
+      } catch {}
+      router.replace('/auth');
+    };
+
+    if (Platform.OS === 'web') {
+      if (window.confirm('Are you sure you want to log out?')) {
+        doLogout();
+      }
+    } else {
+      Alert.alert('Logout', 'Are you sure you want to logout?', [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Logout', style: 'destructive', onPress: doLogout },
+      ]);
+    }
+  };
 
   return (
     <KeyboardAvoidingView
-      style={styles.container}
+      style={[styles.container, containerStyle]}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <View style={styles.headerBar}>
@@ -107,7 +110,7 @@ export default function HomeScreen() {
         showsVerticalScrollIndicator={false}
         bounces={true}
       >
-        <View style={styles.header}>
+        <View style={styles.hero}>
           <Text style={styles.greeting}>What would you like</Text>
           <Text style={styles.greetingAccent}>to learn today?</Text>
         </View>
@@ -119,7 +122,7 @@ export default function HomeScreen() {
               <Ionicons name="search-outline" size={18} color={COLORS.textTertiary} style={styles.inputIcon} />
               <TextInput
                 style={styles.input}
-                placeholder="e.g. Quantum Physics, Python, Mozart..."
+                placeholder="e.g. Quantum Physics, Python..."
                 placeholderTextColor={COLORS.textTertiary}
                 value={topic}
                 onChangeText={setTopic}
@@ -157,7 +160,9 @@ export default function HomeScreen() {
               })}
             </View>
           </View>
+        </View>
 
+        <View style={styles.bottomActions}>
           <PressScale onPress={handleExplain} disabled={!topic.trim()}>
             <View style={[styles.primaryButton, !topic.trim() && styles.disabledButton]}>
               <Text style={styles.primaryButtonText}>Explain</Text>
@@ -181,9 +186,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: COLORS.background,
-    ...Platform.select({
-      web: { maxWidth: 480, alignSelf: 'center', width: '100%' },
-    }),
   },
   headerBar: {
     flexDirection: 'row',
@@ -210,23 +212,30 @@ const styles = StyleSheet.create({
     paddingHorizontal: SPACING.lg,
     paddingBottom: SPACING.xxl,
   },
-  header: {
-    marginBottom: SPACING.xl,
-    marginTop: SPACING.lg,
+  hero: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   greeting: {
     color: COLORS.textSecondary,
     fontSize: FONTS.sizes.title3,
     fontWeight: '400',
+    textAlign: 'center',
   },
   greetingAccent: {
     color: COLORS.text,
     fontSize: FONTS.sizes.largeTitle,
     fontWeight: '700',
     marginTop: SPACING.xxs,
+    textAlign: 'center',
   },
   form: {
     gap: SPACING.lg,
+    marginBottom: SPACING.xl,
+  },
+  bottomActions: {
+    gap: SPACING.md,
   },
   fieldGroup: {
     gap: SPACING.sm,
