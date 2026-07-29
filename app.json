@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "ExplainIt",
-    "slug": "explainit",
+    "name": "Elucid",
+    "slug": "elucid",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -11,17 +11,17 @@
       "resizeMode": "contain",
       "backgroundColor": "#0F0F1A"
     },
-    "scheme": "explainit",
+    "scheme": "elucid",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.explainit.app"
+      "bundleIdentifier": "com.elucid.app"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#0F0F1A"
       },
-      "package": "com.explainit.app"
+      "package": "com.elucid.app"
     },
     "web": {
       "bundler": "metro",
