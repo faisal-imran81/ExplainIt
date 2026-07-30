@@ -278,6 +278,16 @@ export default function HistoryScreen() {
     });
   };
 
+  const stripMarkdown = (text) => {
+    if (!text) return '';
+    return text
+      .replace(/\*\*(.*?)\*\*/g, '$1')
+      .replace(/\*(.*?)\*/g, '$1')
+      .replace(/#{1,6}\s/g, '')
+      .replace(/`(.*?)`/g, '$1')
+      .trim();
+  };
+
   const renderItem = ({ item, index }) => {
     if (!cardAnims.current[item.id]) {
       cardAnims.current[item.id] = new Animated.Value(0);
@@ -334,7 +344,7 @@ export default function HistoryScreen() {
             </View>
 
             <Text style={styles.previewText} numberOfLines={2}>
-              {item.messages?.[1]?.content || 'No preview available'}
+              {stripMarkdown(item.messages?.[1]?.content) || 'No preview available'}
             </Text>
           </TouchableOpacity>
         </Animated.View>
@@ -404,6 +414,7 @@ export default function HistoryScreen() {
         keyExtractor={(item) => item.id.toString()}
         renderItem={renderItem}
         contentContainerStyle={styles.listContent}
+        style={{ width: '100%' }}
         showsVerticalScrollIndicator={false}
         refreshing={refreshing}
         onRefresh={handleRefresh}
@@ -530,7 +541,11 @@ export default function HistoryScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background },
-  listContent: { padding: SPACING.lg, paddingBottom: SPACING.xxl + SPACING.xl },
+  listContent: {
+    paddingHorizontal: Platform.OS === 'web' ? 0 : SPACING.lg,
+    paddingTop: SPACING.lg,
+    paddingBottom: SPACING.xxl + SPACING.xl,
+  },
   headerRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -598,6 +613,7 @@ const styles = StyleSheet.create({
   swipeDeleteBtn: { alignItems: 'center', justifyContent: 'center', gap: SPACING.xs },
   swipeDeleteText: { color: '#fff', fontSize: FONTS.sizes.caption1, fontWeight: '700' },
   card: {
+    width: '100%',
     backgroundColor: COLORS.card,
     borderRadius: RADIUS.xxl,
     borderWidth: 1,

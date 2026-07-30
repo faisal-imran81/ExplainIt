@@ -395,6 +395,7 @@ export default function BookmarksScreen() {
         keyExtractor={(item) => item.id.toString()}
         renderItem={renderItem}
         contentContainerStyle={styles.listContent}
+        style={{ width: '100%' }}
         showsVerticalScrollIndicator={false}
         refreshing={refreshing}
         onRefresh={handleRefresh}
@@ -521,7 +522,11 @@ export default function BookmarksScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background },
-  listContent: { padding: SPACING.lg, paddingBottom: SPACING.xxl + SPACING.xl },
+  listContent: {
+    paddingHorizontal: Platform.OS === 'web' ? 0 : SPACING.lg,
+    paddingTop: SPACING.lg,
+    paddingBottom: SPACING.xxl + SPACING.xl,
+  },
   headerRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -589,6 +594,7 @@ const styles = StyleSheet.create({
   swipeDeleteBtn: { alignItems: 'center', justifyContent: 'center', gap: SPACING.xs },
   swipeDeleteText: { color: '#fff', fontSize: FONTS.sizes.caption1, fontWeight: '700' },
   card: {
+    width: '100%',
     backgroundColor: COLORS.card,
     borderRadius: RADIUS.xxl,
     borderWidth: 1,
