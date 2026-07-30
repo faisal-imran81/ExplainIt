@@ -13,6 +13,7 @@
   <a href="#"><img src="https://img.shields.io/badge/Supabase-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white" alt="Supabase" /></a>
   <a href="#"><img src="https://img.shields.io/badge/Groq_API-FF6F00?style=for-the-badge&logo=groq&logoColor=white" alt="Groq API" /></a>
   <a href="#"><img src="https://img.shields.io/badge/license-MIT-blue?style=for-the-badge" alt="MIT License" /></a>
+  <a href="https://elucid-ai-tutor.vercel.app"><img src="https://img.shields.io/badge/Live_Demo-vercel?style=for-the-badge&logo=vercel&logoColor=white&color=111" alt="Live Demo" /></a>
 </p>
 
 <p align="center">
@@ -90,14 +91,6 @@ npm install
 
 # Create environment file
 cp .env.example .env
-```
-
-Fill in your `.env`:
-
-```env
-EXPO_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
-EXPO_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
-EXPO_PUBLIC_GROQ_API_KEY=gsk_your-groq-key
 ```
 
 ```bash
