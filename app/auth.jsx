@@ -265,7 +265,7 @@ export default function AuthScreen() {
 
   return (
     <KeyboardAvoidingView
-      style={[styles.container, containerStyle]}
+      style={[styles.container, containerStyle, Platform.OS === 'web' && { alignItems: 'center' }]}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : StatusBar.currentHeight || 24}
     >
@@ -275,6 +275,7 @@ export default function AuthScreen() {
         showsVerticalScrollIndicator={false}
         bounces={true}
       >
+        <View style={Platform.OS === 'web' ? { width: '100%', maxWidth: 520, alignSelf: 'center' } : {}}>
         {/* Floating particles */}
         <View style={styles.particleLayer} pointerEvents="none">
           {PARTICLES.map((p) => (
@@ -494,6 +495,7 @@ export default function AuthScreen() {
         <Text style={styles.footer}>
           Guest sessions are temporary. Sign up to save your learning history!
         </Text>
+        </View>
       </ScrollView>
     </KeyboardAvoidingView>
   );

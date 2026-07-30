@@ -58,6 +58,7 @@ function useLoop(from, to, duration, useNativeDriver = true) {
 export default function Onboarding() {
   const router = useRouter();
   const { width } = useWindowDimensions();
+  const slideWidth = Platform.OS === 'web' ? Math.min(width, 860) : width;
   const { containerStyle } = useResponsive();
   const [currentIndex, setCurrentIndex] = useState(0);
   const translateX = useRef(new Animated.Value(0)).current;
@@ -113,7 +114,7 @@ export default function Onboarding() {
   const goToSlide = (index) => {
     if (index < 0 || index >= SLIDES.length) return;
     Animated.spring(translateX, {
-      toValue: -index * width,
+      toValue: -index * slideWidth,
       friction: 8,
       tension: 50,
       useNativeDriver: true,
@@ -139,7 +140,6 @@ export default function Onboarding() {
   ).current;
 
   const handleFinish = async () => {
-    await AsyncStorage.setItem('onboarding_done', 'true');
     router.replace('/auth');
   };
 
@@ -159,7 +159,8 @@ export default function Onboarding() {
   };
 
   return (
-    <SafeAreaView style={[styles.container, containerStyle]}>
+    <SafeAreaView style={[styles.container, containerStyle, Platform.OS === 'web' && { alignItems: 'center' }]}>
+      <View style={Platform.OS === 'web' ? { width: Math.min(width, 860), flex: 1, overflow: 'hidden' } : { flex: 1 }}>
       <Animated.View style={{ flex: 1, opacity: fadeAnim, transform: [{ translateY: slideUp }] }}>
 
         {/* Skip Button */}
@@ -187,9 +188,9 @@ export default function Onboarding() {
 
         {/* Slides */}
         <View style={styles.slidesWrapper} {...panResponder.panHandlers}>
-          <Animated.View style={[styles.slidesRow, { width: width * SLIDES.length, transform: [{ translateX }] }]}>
+          <Animated.View style={[styles.slidesRow, { width: slideWidth * SLIDES.length, transform: [{ translateX }] }]}>
             {SLIDES.map((slide, i) => {
-              const inputRange = [-(i + 1) * width, -i * width, -(i - 1) * width];
+              const inputRange = [-(i + 1) * slideWidth, -i * slideWidth, -(i - 1) * slideWidth];
               const slideOpacity = translateX.interpolate({
                 inputRange,
                 outputRange: [0.4, 1, 0.4],
@@ -206,7 +207,7 @@ export default function Onboarding() {
                   key={slide.id}
                   style={[
                     styles.slide,
-                    { width, opacity: slideOpacity, transform: [{ translateY: slideTranslateY }] },
+                    { width: slideWidth, opacity: slideOpacity, transform: [{ translateY: slideTranslateY }] },
                   ]}
                 >
                   {/* Background glow */}
@@ -324,6 +325,7 @@ export default function Onboarding() {
         </View>
 
       </Animated.View>
+      </View>
     </SafeAreaView>
   );
 }
