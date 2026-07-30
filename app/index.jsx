@@ -17,7 +17,6 @@ import { useRouter } from 'expo-router';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { COLORS, FONTS, SPACING, RADIUS } from '../constants/theme';
 import { signOut } from '../lib/supabase';
-import WebBackground from '../components/WebBackground';
 
 const DIFFICULTIES = [
   { value: 'eli5', label: 'ELI5' },
@@ -28,16 +27,16 @@ const DIFFICULTIES = [
 ];
 
 const SUGGESTIONS = [
-  { icon: 'atom-outline', label: 'Quantum Physics', topic: 'Quantum Physics', difficulty: 'beginner' },
-  { icon: 'bulb-outline', label: 'How AI Works', topic: 'How Artificial Intelligence Works', difficulty: 'intermediate' },
-  { icon: 'code-slash-outline', label: 'Python Basics', topic: 'Python Programming', difficulty: 'beginner' },
-  { icon: 'planet-outline', label: 'Black Holes', topic: 'Black Holes', difficulty: 'eli5' },
-  { icon: 'link-outline', label: 'Blockchain', topic: 'Blockchain Technology', difficulty: 'intermediate' },
-  { icon: 'git-network-outline', label: 'DNA & Genetics', topic: 'DNA and Genetics', difficulty: 'beginner' },
-  { icon: 'rocket-outline', label: 'Space Travel', topic: 'Space Travel and Rockets', difficulty: 'eli5' },
-  { icon: 'trending-up-outline', label: 'Stock Market', topic: 'How the Stock Market Works', difficulty: 'beginner' },
-  { icon: 'flash-outline', label: 'Electricity', topic: 'How Electricity Works', difficulty: 'eli5' },
-  { icon: 'cube-outline', label: 'Neural Networks', topic: 'Neural Networks', difficulty: 'advanced' },
+  { label: 'Quantum Physics', topic: 'Quantum Physics', difficulty: 'beginner' },
+  { label: 'How AI Works', topic: 'How Artificial Intelligence Works', difficulty: 'intermediate' },
+  { label: 'Python Basics', topic: 'Python Programming', difficulty: 'beginner' },
+  { label: 'Black Holes', topic: 'Black Holes', difficulty: 'eli5' },
+  { label: 'Blockchain', topic: 'Blockchain Technology', difficulty: 'intermediate' },
+  { label: 'DNA & Genetics', topic: 'DNA and Genetics', difficulty: 'beginner' },
+  { label: 'Space Travel', topic: 'Space Travel and Rockets', difficulty: 'eli5' },
+  { label: 'Stock Market', topic: 'How the Stock Market Works', difficulty: 'beginner' },
+  { label: 'Electricity', topic: 'How Electricity Works', difficulty: 'eli5' },
+  { label: 'Neural Networks', topic: 'Neural Networks', difficulty: 'advanced' },
 ];
 
 function PressScale({ children, onPress, style, ...props }) {
@@ -110,7 +109,6 @@ export default function HomeScreen() {
       style={[styles.container, containerStyle]}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
-      <WebBackground />
       <View style={styles.headerBar}>
         <PressScale onPress={handleLogout}>
           <View style={styles.iconBtn}>
@@ -268,7 +266,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   greeting: {
-    color: COLORS.textSecondary,
+    color: COLORS.text,
     fontSize: FONTS.sizes.title3,
     fontWeight: '400',
     textAlign: 'center',
@@ -289,7 +287,7 @@ const styles = StyleSheet.create({
     gap: SPACING.sm,
   },
   suggestionsLabel: {
-    color: COLORS.textSecondary,
+    color: COLORS.text,
     fontSize: FONTS.sizes.footnote,
     fontWeight: '600',
     textTransform: 'uppercase',
@@ -318,7 +316,7 @@ const styles = StyleSheet.create({
     borderColor: COLORS.primary,
   },
   suggestionChipText: {
-    color: COLORS.textSecondary,
+    color: COLORS.text,
     fontSize: FONTS.sizes.subhead,
     fontWeight: '500',
   },
@@ -333,7 +331,7 @@ const styles = StyleSheet.create({
     gap: SPACING.sm,
   },
   label: {
-    color: COLORS.textSecondary,
+    color: COLORS.text,
     fontSize: FONTS.sizes.footnote,
     fontWeight: '600',
     textTransform: 'uppercase',

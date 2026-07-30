@@ -3,6 +3,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState, useRef } from 'react';
 import { ActivityIndicator, Animated, Platform, View } from 'react-native';
 import { COLORS } from '../constants/theme';
+import WebBackground from '../components/WebBackground';
 import { supabase, onAuthStateChange } from '../lib/supabase';
 
 function LoadingScreen() {
@@ -84,6 +85,17 @@ export default function RootLayout() {
         headerShadowVisible: false,
         contentStyle: { backgroundColor: COLORS.background },
         animation: 'fade',
+        ...(Platform.OS === 'web' ? {
+          headerShown: true,
+          headerBackVisible: true,
+          headerStyle: {
+            backgroundColor: COLORS.background,
+          },
+          headerTintColor: COLORS.text,
+          headerLeftContainerStyle: {
+            paddingLeft: 16,
+          },
+        } : {}),
       }}
     >
       <Stack.Screen name="index" options={{ headerShown: false }} />
@@ -104,7 +116,8 @@ export default function RootLayout() {
 
   if (Platform.OS === 'web') {
     return (
-      <View style={{ flex: 1, backgroundColor: COLORS.background }}>
+      <View style={{ flex: 1, backgroundColor: '#0A0A0F' }}>
+        <WebBackground />
         <StatusBar style="light" />
         {stackContent}
       </View>
@@ -112,9 +125,10 @@ export default function RootLayout() {
   }
 
   return (
-    <>
+    <View style={{ flex: 1, backgroundColor: '#0A0A0F' }}>
+      <WebBackground />
       <StatusBar style="light" />
       {stackContent}
-    </>
+    </View>
   );
 }
