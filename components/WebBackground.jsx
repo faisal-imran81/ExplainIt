@@ -6,9 +6,12 @@ export default function WebBackground() {
 
   useEffect(() => {
     document.documentElement.style.backgroundColor = '#0F0F1A';
+    document.documentElement.style.height = '100%';
     document.body.style.backgroundColor = '#0F0F1A';
     document.body.style.margin = '0';
     document.body.style.padding = '0';
+    document.body.style.height = '100%';
+    document.body.style.overflow = 'hidden';
 
     const styleId = 'elucid-bg-style';
     if (document.getElementById(styleId)) return;
@@ -27,7 +30,7 @@ export default function WebBackground() {
         position: absolute;
         border-radius: 50%;
         filter: blur(80px);
-        opacity: 0.18;
+        opacity: 0.07;
         animation-timing-function: ease-in-out;
         animation-iteration-count: infinite;
         animation-direction: alternate;
@@ -98,8 +101,8 @@ export default function WebBackground() {
       }
       @keyframes particleFloat {
         0%   { opacity: 0; transform: translateY(0px) scale(0.5); }
-        10%  { opacity: 0.6; }
-        90%  { opacity: 0.3; }
+        10%  { opacity: 0.25; }
+        90%  { opacity: 0.12; }
         100% { opacity: 0; transform: translateY(-420px) scale(1.2); }
       }
     `;
