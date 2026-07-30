@@ -5,6 +5,11 @@ export default function WebBackground() {
   if (Platform.OS !== 'web') return null;
 
   useEffect(() => {
+    document.documentElement.style.backgroundColor = '#0F0F1A';
+    document.body.style.backgroundColor = '#0F0F1A';
+    document.body.style.margin = '0';
+    document.body.style.padding = '0';
+
     const styleId = 'elucid-bg-style';
     if (document.getElementById(styleId)) return;
 
@@ -130,6 +135,8 @@ export default function WebBackground() {
     document.body.insertBefore(bg, document.body.firstChild);
 
     return () => {
+      document.documentElement.style.backgroundColor = '';
+      document.body.style.backgroundColor = '';
       document.getElementById('elucid-bg')?.remove();
       document.getElementById(styleId)?.remove();
     };
