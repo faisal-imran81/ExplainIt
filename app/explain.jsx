@@ -116,6 +116,192 @@ function TypingDots() {
   );
 }
 
+function renderInlineMarkdown(text, baseStyle) {
+  if (!text) return null;
+
+  const parts = [];
+  let remaining = text;
+  let keyIdx = 0;
+
+  while (remaining.length > 0) {
+    const boldMatch = remaining.match(/\*\*(.*?)\*\*/);
+    const italicMatch = remaining.match(/(?<!\*)\*(?!\*)(.*?)(?<!\*)\*(?!\*)/);
+    const codeMatch = remaining.match(/`([^`]+)`/);
+
+    const matches = [
+      boldMatch && { match: boldMatch, type: 'bold' },
+      italicMatch && { match: italicMatch, type: 'italic' },
+      codeMatch && { match: codeMatch, type: 'code' },
+    ].filter(Boolean);
+
+    if (matches.length === 0) {
+      parts.push(<Text key={keyIdx++} style={baseStyle}>{remaining}</Text>);
+      break;
+    }
+
+    const earliest = matches.reduce((a, b) =>
+      a.match.index <= b.match.index ? a : b
+    );
+
+    const { match, type } = earliest;
+
+    if (match.index > 0) {
+      parts.push(
+        <Text key={keyIdx++} style={baseStyle}>
+          {remaining.substring(0, match.index)}
+        </Text>
+      );
+    }
+
+    if (type === 'bold') {
+      parts.push(
+        <Text key={keyIdx++} style={[baseStyle, { fontWeight: '700', color: COLORS.text }]}>
+          {match[1]}
+        </Text>
+      );
+    } else if (type === 'italic') {
+      parts.push(
+        <Text key={keyIdx++} style={[baseStyle, { fontStyle: 'italic' }]}>
+          {match[1]}
+        </Text>
+      );
+    } else if (type === 'code') {
+      parts.push(
+        <Text key={keyIdx++} style={[baseStyle, {
+          fontFamily: Platform.OS === 'ios' ? 'Courier New' : 'monospace',
+          fontSize: 13,
+          backgroundColor: COLORS.surface,
+          color: COLORS.primary,
+          paddingHorizontal: 4,
+          borderRadius: 3,
+        }]}>
+          {match[1]}
+        </Text>
+      );
+    }
+
+    remaining = remaining.substring(match.index + match[0].length);
+  }
+
+  return parts;
+}
+
+function renderMarkdown(text, baseStyle) {
+  if (!text) return null;
+
+  const lines = text.split('\n');
+  const elements = [];
+  let keyCounter = 0;
+
+  lines.forEach((line) => {
+    const key = keyCounter++;
+
+    if (line.trim() === '') {
+      elements.push(<View key={key} style={{ height: 6 }} />);
+      return;
+    }
+
+    if (line.startsWith('# ')) {
+      elements.push(
+        <Text key={key} style={[baseStyle, {
+          fontSize: 20, fontWeight: '700',
+          color: COLORS.text, marginBottom: 6, marginTop: 8,
+        }]}>
+          {line.replace(/^# /, '')}
+        </Text>
+      );
+      return;
+    }
+
+    if (line.startsWith('## ')) {
+      elements.push(
+        <Text key={key} style={[baseStyle, {
+          fontSize: 17, fontWeight: '700',
+          color: COLORS.text, marginBottom: 4, marginTop: 6,
+        }]}>
+          {line.replace(/^## /, '')}
+        </Text>
+      );
+      return;
+    }
+
+    if (line.startsWith('### ')) {
+      elements.push(
+        <Text key={key} style={[baseStyle, {
+          fontSize: 15, fontWeight: '700',
+          color: COLORS.text, marginBottom: 3, marginTop: 4,
+        }]}>
+          {line.replace(/^### /, '')}
+        </Text>
+      );
+      return;
+    }
+
+    if (line.match(/^[\-\*] /)) {
+      const content = line.replace(/^[\-\*] /, '');
+      elements.push(
+        <View key={key} style={{ flexDirection: 'row', marginBottom: 3, paddingLeft: 4 }}>
+          <Text style={[baseStyle, { color: COLORS.primary, marginRight: 8, marginTop: 1 }]}>•</Text>
+          <Text style={[baseStyle, { flex: 1 }]}>
+            {renderInlineMarkdown(content, baseStyle)}
+          </Text>
+        </View>
+      );
+      return;
+    }
+
+    if (line.match(/^\d+\. /)) {
+      const num = line.match(/^(\d+)\./)[1];
+      const content = line.replace(/^\d+\. /, '');
+      elements.push(
+        <View key={key} style={{ flexDirection: 'row', marginBottom: 3, paddingLeft: 4 }}>
+          <Text style={[baseStyle, { color: COLORS.primary, marginRight: 8, minWidth: 20 }]}>{num}.</Text>
+          <Text style={[baseStyle, { flex: 1 }]}>
+            {renderInlineMarkdown(content, baseStyle)}
+          </Text>
+        </View>
+      );
+      return;
+    }
+
+    if (line.startsWith('```') || line.startsWith('    ')) {
+      const codeText = line.startsWith('```')
+        ? line.replace(/```\w*/, '').trim()
+        : line.replace(/^    /, '');
+      if (codeText) {
+        elements.push(
+          <View key={key} style={{
+            backgroundColor: COLORS.surface,
+            borderRadius: 6,
+            paddingHorizontal: 10,
+            paddingVertical: 6,
+            marginVertical: 2,
+            borderLeftWidth: 3,
+            borderLeftColor: COLORS.primary,
+          }}>
+            <Text style={[baseStyle, {
+              fontFamily: Platform.OS === 'ios' ? 'Courier New' : 'monospace',
+              fontSize: 13,
+              color: COLORS.primary,
+            }]}>
+              {codeText}
+            </Text>
+          </View>
+        );
+      }
+      return;
+    }
+
+    elements.push(
+      <Text key={key} style={[baseStyle, { marginBottom: 2, lineHeight: 24 }]}>
+        {renderInlineMarkdown(line, baseStyle)}
+      </Text>
+    );
+  });
+
+  return elements;
+}
+
 export default function ExplainScreen() {
   const { id, topic, difficulty } = useLocalSearchParams();
   const router = useRouter();
@@ -639,7 +825,11 @@ export default function ExplainScreen() {
                         <Text style={styles.aiLabel}>Elucid</Text>
                       </View>
                     )}
-                    <Text style={styles.messageText}>{msg.content}</Text>
+                    {isUser ? (
+                      <Text style={styles.messageText}>{msg.content}</Text>
+                    ) : (
+                      <View>{renderMarkdown(msg.content, styles.messageText)}</View>
+                    )}
                   </Animated.View>
                 );
               })}
