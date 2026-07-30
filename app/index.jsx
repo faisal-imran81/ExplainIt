@@ -17,6 +17,7 @@ import { useRouter } from 'expo-router';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { COLORS, FONTS, SPACING, RADIUS } from '../constants/theme';
 import { signOut } from '../lib/supabase';
+import WebBackground from '../components/WebBackground';
 
 const DIFFICULTIES = [
   { value: 'eli5', label: 'ELI5' },
@@ -24,6 +25,19 @@ const DIFFICULTIES = [
   { value: 'intermediate', label: 'Intermediate' },
   { value: 'advanced', label: 'Advanced' },
   { value: 'phd', label: 'PhD' },
+];
+
+const SUGGESTIONS = [
+  { icon: 'atom-outline', label: 'Quantum Physics', topic: 'Quantum Physics', difficulty: 'beginner' },
+  { icon: 'bulb-outline', label: 'How AI Works', topic: 'How Artificial Intelligence Works', difficulty: 'intermediate' },
+  { icon: 'code-slash-outline', label: 'Python Basics', topic: 'Python Programming', difficulty: 'beginner' },
+  { icon: 'planet-outline', label: 'Black Holes', topic: 'Black Holes', difficulty: 'eli5' },
+  { icon: 'link-outline', label: 'Blockchain', topic: 'Blockchain Technology', difficulty: 'intermediate' },
+  { icon: 'git-network-outline', label: 'DNA & Genetics', topic: 'DNA and Genetics', difficulty: 'beginner' },
+  { icon: 'rocket-outline', label: 'Space Travel', topic: 'Space Travel and Rockets', difficulty: 'eli5' },
+  { icon: 'trending-up-outline', label: 'Stock Market', topic: 'How the Stock Market Works', difficulty: 'beginner' },
+  { icon: 'flash-outline', label: 'Electricity', topic: 'How Electricity Works', difficulty: 'eli5' },
+  { icon: 'cube-outline', label: 'Neural Networks', topic: 'Neural Networks', difficulty: 'advanced' },
 ];
 
 function PressScale({ children, onPress, style, ...props }) {
@@ -66,6 +80,11 @@ export default function HomeScreen() {
     });
   };
 
+  const handleSuggestion = (suggestion) => {
+    setTopic(suggestion.topic);
+    setDifficulty(suggestion.difficulty);
+  };
+
   const handleLogout = () => {
     const doLogout = async () => {
       try {
@@ -91,6 +110,7 @@ export default function HomeScreen() {
       style={[styles.container, containerStyle]}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
+      <WebBackground />
       <View style={styles.headerBar}>
         <PressScale onPress={handleLogout}>
           <View style={styles.iconBtn}>
@@ -113,6 +133,36 @@ export default function HomeScreen() {
         <View style={styles.hero}>
           <Text style={styles.greeting}>What would you like</Text>
           <Text style={styles.greetingAccent}>to learn today?</Text>
+        </View>
+
+        <View style={styles.suggestionsSection}>
+          <Text style={styles.suggestionsLabel}>Try asking about...</Text>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.suggestionsRow}
+          >
+            {SUGGESTIONS.map((item) => (
+              <PressScale key={item.topic} onPress={() => handleSuggestion(item)}>
+                <View style={[
+                  styles.suggestionChip,
+                  topic === item.topic && styles.suggestionChipActive
+                ]}>
+                  <Ionicons
+                    name={item.icon}
+                    size={14}
+                    color={topic === item.topic ? COLORS.text : COLORS.textSecondary}
+                  />
+                  <Text style={[
+                    styles.suggestionChipText,
+                    topic === item.topic && styles.suggestionChipTextActive
+                  ]}>
+                    {item.label}
+                  </Text>
+                </View>
+              </PressScale>
+            ))}
+          </ScrollView>
         </View>
 
         <View style={styles.form}>
@@ -233,6 +283,48 @@ const styles = StyleSheet.create({
   form: {
     gap: SPACING.lg,
     marginBottom: SPACING.xl,
+  },
+  suggestionsSection: {
+    marginBottom: SPACING.lg,
+    gap: SPACING.sm,
+  },
+  suggestionsLabel: {
+    color: COLORS.textSecondary,
+    fontSize: FONTS.sizes.footnote,
+    fontWeight: '600',
+    textTransform: 'uppercase',
+    letterSpacing: 0.8,
+    paddingHorizontal: SPACING.xs,
+  },
+  suggestionsRow: {
+    flexDirection: 'row',
+    gap: SPACING.sm,
+    paddingVertical: SPACING.xs,
+    paddingHorizontal: SPACING.xs,
+  },
+  suggestionChip: {
+    borderRadius: RADIUS.full,
+    backgroundColor: COLORS.surface,
+    borderWidth: 1,
+    borderColor: COLORS.borderLight,
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.sm,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.xs,
+  },
+  suggestionChipActive: {
+    backgroundColor: COLORS.primary,
+    borderColor: COLORS.primary,
+  },
+  suggestionChipText: {
+    color: COLORS.textSecondary,
+    fontSize: FONTS.sizes.subhead,
+    fontWeight: '500',
+  },
+  suggestionChipTextActive: {
+    color: COLORS.text,
+    fontWeight: '600',
   },
   bottomActions: {
     gap: SPACING.md,
