@@ -1,47 +1,38 @@
-import { useWindowDimensions, Platform } from 'react-native';
+import { Platform, useWindowDimensions } from 'react-native';
 
-const BREAKPOINTS = { MOBILE: 480, TABLET: 768, DESKTOP: 1024 };
+export const useResponsive = () => {
+  const { width } = useWindowDimensions();
 
-export function useResponsive() {
-  const { width: windowWidth } = useWindowDimensions();
+  if (Platform.OS !== 'web') {
+    return {
+      containerStyle: {},
+      isWeb: false,
+      isMobile: true,
+      contentMaxWidth: width,
+      horizontalPadding: 20,
+    };
+  }
 
-  const breakpoint =
-    windowWidth <= BREAKPOINTS.MOBILE ? 'mobile'
-      : windowWidth <= BREAKPOINTS.TABLET ? 'tablet'
-        : windowWidth <= BREAKPOINTS.DESKTOP ? 'desktop'
-          : 'ultrawide';
+  // Web breakpoints
+  const isSmallWeb = width < 768;
+  const isMediumWeb = width >= 768 && width < 1100;
+  const isLargeWeb = width >= 1100;
 
-  const isMobile = breakpoint === 'mobile';
-  const isTablet = breakpoint === 'tablet';
-  const isDesktop = breakpoint === 'desktop';
-  const isUltraWide = breakpoint === 'ultrawide';
+  const contentMaxWidth = isLargeWeb ? 960 : isMediumWeb ? 800 : 640;
+  const horizontalPadding = isLargeWeb ? 48 : isMediumWeb ? 32 : 20;
 
-  const containerStyle = Platform.select({
-    web: {
-      maxWidth:
-        isMobile ? undefined
-          : isTablet ? 720
-            : isDesktop ? 960
-              : 1140,
-      alignSelf: 'center',
-      width: '100%',
-    },
-    default: {},
-  });
-
-  const bubbleMaxWidth = Platform.select({
-    web: isMobile ? undefined : isTablet ? '75%' : '65%',
-    default: undefined,
-  });
+  const containerStyle = {
+    maxWidth: contentMaxWidth,
+    width: '100%',
+    alignSelf: 'center',
+    paddingHorizontal: horizontalPadding,
+  };
 
   return {
-    windowWidth,
-    breakpoint,
-    isMobile,
-    isTablet,
-    isDesktop,
-    isUltraWide,
     containerStyle,
-    bubbleMaxWidth,
+    isWeb: true,
+    isMobile: false,
+    contentMaxWidth,
+    horizontalPadding,
   };
-}
+};
